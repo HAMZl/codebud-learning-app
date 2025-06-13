@@ -19,6 +19,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   String message = '';
   bool isLoading = false;
+  bool isError = false;
 
   // Validation function
   bool validateFields() {
@@ -29,11 +30,15 @@ class _SignUpPageState extends State<SignUpPage> {
         usernameController.text.isEmpty ||
         passwordController.text.isEmpty) {
       setState(() {
+        isError = true;
         message = "Please fill in all required fields.";
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('All fields are required.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('All fields are required.'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return false;
     }
     return true;
@@ -46,6 +51,7 @@ class _SignUpPageState extends State<SignUpPage> {
     setState(() {
       isLoading = true;
       message = '';
+      isError = false;
     });
 
     final body = {
@@ -59,12 +65,13 @@ class _SignUpPageState extends State<SignUpPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:5000/signup'),
+        Uri.parse(
+          'http://127.0.0.1:5000/signup',
+        ), // CHANGE TO YOUR BACKEND URL IF NEEDED
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(body),
       );
 
-      // ADD THIS CHECK before using context/setState after await!
       if (!mounted) return;
 
       final data = jsonDecode(response.body);
@@ -90,6 +97,7 @@ class _SignUpPageState extends State<SignUpPage> {
         });
       } else {
         setState(() {
+          isError = true;
           message = data['message'] ?? 'Sign up failed!';
         });
         ScaffoldMessenger.of(context).showSnackBar(
@@ -100,6 +108,7 @@ class _SignUpPageState extends State<SignUpPage> {
       if (!mounted) return;
       setState(() {
         isLoading = false;
+        isError = true;
         message = 'Network error. Please try again.';
       });
       ScaffoldMessenger.of(context).showSnackBar(
@@ -108,78 +117,163 @@ class _SignUpPageState extends State<SignUpPage> {
     }
   }
 
+  InputDecoration styledInputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      prefixIcon: Icon(icon, color: Colors.lightBlueAccent),
+      labelText: label,
+      filled: true,
+      fillColor: Colors.deepPurple.shade50,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.deepPurple),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.deepPurple, width: 3),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign Up')),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Create an account',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: 24),
-              TextField(
-                controller: parentNameController,
-                decoration: const InputDecoration(labelText: 'Parent Name *'),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(labelText: 'Email *'),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: childNameController,
-                decoration: const InputDecoration(labelText: 'Child Name *'),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: childAgeController,
-                decoration: const InputDecoration(labelText: 'Child Age *'),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: usernameController,
-                decoration: const InputDecoration(labelText: 'Username *'),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: passwordController,
-                decoration: const InputDecoration(labelText: 'Password *'),
-                obscureText: true,
-              ),
-              const SizedBox(height: 24),
-              isLoading
-                  ? const CircularProgressIndicator()
-                  : SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: handleSignUp,
-                        child: const Text('Sign Up'),
-                      ),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Logo at top right
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Image.asset('assets/images/codebud_logo.png', height: 60),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                Center(
+                  child: Text(
+                    'Create an Account',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
-              const SizedBox(height: 16),
-              Text(message, style: const TextStyle(color: Colors.red)),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Already have an account? "),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/login');
-                    },
-                    child: const Text('Login'),
                   ),
-                ],
-              ),
-            ],
+                ),
+
+                const SizedBox(height: 32),
+                Text(
+                  '👩 Parent Information',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 16),
+
+                TextField(
+                  controller: parentNameController,
+                  decoration: styledInputDecoration(
+                    'Parent Name',
+                    Icons.person,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                TextField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: styledInputDecoration('Email', Icons.email),
+                ),
+
+                const SizedBox(height: 32),
+                Text(
+                  '🧒 Child Information',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 16),
+
+                TextField(
+                  controller: childNameController,
+                  decoration: styledInputDecoration(
+                    'Child Name',
+                    Icons.child_care,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                TextField(
+                  controller: childAgeController,
+                  keyboardType: TextInputType.number,
+                  decoration: styledInputDecoration(
+                    'Child Age',
+                    Icons.calendar_today,
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+                Text(
+                  '🔑 Account Details',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 16),
+
+                TextField(
+                  controller: usernameController,
+                  decoration: styledInputDecoration(
+                    'Username',
+                    Icons.account_circle,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: styledInputDecoration('Password', Icons.lock),
+                ),
+
+                const SizedBox(height: 32),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.lightBlueAccent,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            textStyle: const TextStyle(fontSize: 18),
+                          ),
+                          onPressed: handleSignUp,
+                          child: const Text('Sign Up'),
+                        ),
+                ),
+
+                const SizedBox(height: 16),
+                Center(
+                  child: Text(
+                    message,
+                    style: TextStyle(
+                      color: isError ? Colors.red : Colors.green,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Already have an account? "),
+                    TextButton(
+                      onPressed: () => Navigator.pushNamed(context, '/login'),
+                      child: const Text('Login'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
