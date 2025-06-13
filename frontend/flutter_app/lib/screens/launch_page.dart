@@ -6,44 +6,57 @@ class LaunchPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.lightBlue[100], // Soft blue for kid-friendly feel
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(32.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // App Title
+              // 🧸 Buddy mascot logo
+              Image.asset(
+                'assets/images/codebud_logo.png',
+                height: 180,
+              ),
+              const SizedBox(height: 32),
               const Text(
-                'CodeBud',
+                'Welcome to CodeBud!',
                 style: TextStyle(
-                  fontSize: 40,
+                  fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Colors.deepPurple,
                 ),
               ),
-              const SizedBox(height: 24),
-              // App Logo
-              Image.asset(
-                'lib/assets/images/logo-placeholder-image.png',
-                height: 240,
-                width: 240,
-              ),
-              const SizedBox(height: 24),
-              // Login Button
+              const SizedBox(height: 40),
+
+              // 🔐 Login button
               SizedBox(
                 width: double.infinity,
-                child: OutlinedButton(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    textStyle: const TextStyle(fontSize: 18),
+                  ),
                   onPressed: () {
                     Navigator.pushNamed(context, '/login');
                   },
-                  child: const Text('Login'),
+                  child: const Text('Log In'),
                 ),
               ),
-              const SizedBox(height: 20),
-              // Signup Button
+              const SizedBox(height: 16),
+
+// 📝 Sign up button (same style)
               SizedBox(
                 width: double.infinity,
-                child: OutlinedButton(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    textStyle: const TextStyle(fontSize: 18),
+                  ),
                   onPressed: () {
                     Navigator.pushNamed(context, '/signup');
                   },
