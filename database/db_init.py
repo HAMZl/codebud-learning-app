@@ -13,14 +13,3 @@ for col in collections:
     if col not in db.list_collection_names():
         db.create_collection(col)
         print(f"Collection '{col}' created.")
-
-# (Optional) Insert a sample user document
-db['users'].insert_one({
-    "username": "hamza",
-    "email": "hamza@example.com",
-    "password": "hashed_password",
-    "name": "Hamza",
-    "age": 5,
-})
-
-print("Setup complete.")
