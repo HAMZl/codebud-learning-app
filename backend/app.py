@@ -38,7 +38,7 @@ def login():
         return jsonify({'success': False, 'message': 'No account with that username!'}), 401
 
     if check_password_hash(user['password'], password):
-        return jsonify({'success': True, 'message': f'Welcome, {user["parent_name"]}!'}), 200
+        return jsonify({'success': True, 'message': f'Welcome, {user["child_name"]}!'}), 200
     else:
         return jsonify({'success': False, 'message': 'Incorrect password!'}), 401
 

@@ -3,6 +3,7 @@ import 'screens/launch_page.dart';
 import 'screens/login_page.dart';
 import 'screens/signup_page.dart';
 import 'screens/puzzle_selection_page.dart';
+import 'screens/puzzle_gameplay.dart';
 
 void main() {
   runApp(const CodeBudApp());
@@ -16,9 +17,7 @@ class CodeBudApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'CodeBud',
-      theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
-      ),
+      theme: ThemeData(primarySwatch: Colors.deepPurple),
       // Set up the named routes
       initialRoute: '/',
       routes: {
@@ -26,7 +25,7 @@ class CodeBudApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignUpPage(),
         '/puzzles': (context) => const PuzzleSelectionPage(),
-
+        '/puzzle': (context) => const PuzzleScreen(),
       },
     );
   }
