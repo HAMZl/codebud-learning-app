@@ -1,13 +1,16 @@
+// lib/screens/puzzle_selection_page.dart
 import 'package:flutter/material.dart';
 import '../widgets/puzzle_button.dart';
 
 class PuzzleSelectionPage extends StatelessWidget {
-  const PuzzleSelectionPage({super.key});
+  final String title;
+
+  const PuzzleSelectionPage({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Select a Puzzle')),
+      appBar: AppBar(title: Text(title)),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -15,21 +18,21 @@ class PuzzleSelectionPage extends StatelessWidget {
             PuzzleButton(
               label: '🧩 Puzzle 1',
               onPressed: () {
-                // Navigate to Puzzle 1 (to be implemented)
+                Navigator.pushNamed(context, '/puzzle');
               },
             ),
             const SizedBox(height: 16),
             PuzzleButton(
               label: '🎨 Puzzle 2',
               onPressed: () {
-                // Navigate to Puzzle 2
+                Navigator.pushNamed(context, '/puzzle');
               },
             ),
             const SizedBox(height: 16),
             PuzzleButton(
               label: '🔢 Puzzle 3',
               onPressed: () {
-                // Navigate to Puzzle 3
+                Navigator.pushNamed(context, '/puzzle');
               },
             ),
           ],
