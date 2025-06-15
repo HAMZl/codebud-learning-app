@@ -18,18 +18,40 @@ class CodeBudApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'CodeBud',
       theme: ThemeData(primarySwatch: Colors.deepPurple),
-      // Set up the named routes
       initialRoute: '/',
+      // Static routes
       routes: {
         '/': (context) => const LaunchPage(),
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignUpPage(),
-        '/sequences': (context) =>
-            const PuzzleSelectionPage(title: 'Sequence Puzzles'),
-        '/loops': (context) => const PuzzleSelectionPage(title: 'Loop Puzzles'),
-        '/conditionals': (context) =>
-            const PuzzleSelectionPage(title: 'Conditional Puzzles'),
         '/puzzle': (context) => const PuzzleScreen(),
+      },
+      // Dynamic routing for PuzzleSelectionPage with title and category
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/sequences':
+            return MaterialPageRoute(
+              builder: (_) => const PuzzleSelectionPage(
+                title: 'Sequence Puzzles',
+                category: 'sequence',
+              ),
+            );
+          case '/loops':
+            return MaterialPageRoute(
+              builder: (_) => const PuzzleSelectionPage(
+                title: 'Loop Puzzles',
+                category: 'loop',
+              ),
+            );
+          case '/conditionals':
+            return MaterialPageRoute(
+              builder: (_) => const PuzzleSelectionPage(
+                title: 'Conditional Puzzles',
+                category: 'conditional',
+              ),
+            );
+        }
+        return null;
       },
     );
   }
