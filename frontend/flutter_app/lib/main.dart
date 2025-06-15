@@ -16,17 +16,18 @@ class CodeBudApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'CodeBud',
-      theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
-      ),
+      theme: ThemeData(primarySwatch: Colors.deepPurple),
       // Set up the named routes
       initialRoute: '/',
       routes: {
         '/': (context) => const LaunchPage(),
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignUpPage(),
-        '/puzzles': (context) => const PuzzleSelectionPage(),
-
+        '/sequences': (context) =>
+            const PuzzleSelectionPage(title: 'Sequence Puzzles'),
+        '/loops': (context) => const PuzzleSelectionPage(title: 'Loop Puzzles'),
+        '/conditionals': (context) =>
+            const PuzzleSelectionPage(title: 'Conditional Puzzles'),
       },
     );
   }
