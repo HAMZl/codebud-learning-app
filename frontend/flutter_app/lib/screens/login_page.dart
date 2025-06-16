@@ -1,20 +1,94 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
   @override
-  _LoginPageState createState() => _LoginPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController emailController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   String message = '';
+  bool isLoading = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Show message if passed from sign up page
+    final String? successMsg =
+        ModalRoute.of(context)?.settings.arguments as String?;
+    if (successMsg != null && successMsg.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(successMsg), backgroundColor: Colors.green),
+        );
+      });
+    }
+  }
+
+  Future<void> handleLogin() async {
+    setState(() {
+      isLoading = true;
+      message = '';
+    });
+
+    final body = {
+      "username": usernameController.text.trim(),
+      "password": passwordController.text,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(
+          'http://127.0.0.1:5000/login',
+        ), // Change this to your backend URL if deploying
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(body),
+      );
+      if (!mounted) return;
+
+      final data = jsonDecode(response.body);
+
+      setState(() {
+        isLoading = false;
+      });
+
+      if (response.statusCode == 200 && data['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(data['message'] ?? 'Login successful!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // TODO: Redirect to your home/dashboard page if needed
+        // Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        setState(() {
+          message = data['message'] ?? 'Login failed!';
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        isLoading = false;
+        message = 'Network error. Please try again.';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: Colors.red),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Clean white background
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Stack(
           children: [
@@ -22,21 +96,25 @@ class _LoginPageState extends State<LoginPage> {
             Positioned(
               top: 16,
               right: 16,
-              child: Image.asset(
-                'assets/images/codebud_logo.png',
-                height: 70,
-              ),
+              child: Image.asset('assets/images/codebud_logo.png', height: 70),
             ),
 
             // Main form content
             Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 24,
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const SizedBox(height: 16),
-                    const Icon(Icons.lock, size: 72, color: Colors.lightBlueAccent),
+                    const Icon(
+                      Icons.lock,
+                      size: 72,
+                      color: Colors.lightBlueAccent,
+                    ),
                     const SizedBox(height: 24),
                     const Text(
                       'Welcome back',
@@ -48,13 +126,13 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 32),
 
-                    // Email field
+                    // Username field
                     TextField(
-                      controller: emailController,
-                      decoration: InputDecoration(
-                        labelText: 'Email',
+                      controller: usernameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Username *',
                         border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.email),
+                        prefixIcon: Icon(Icons.person),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -63,8 +141,8 @@ class _LoginPageState extends State<LoginPage> {
                     TextField(
                       controller: passwordController,
                       obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
+                      decoration: const InputDecoration(
+                        labelText: 'Password *',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.lock),
                       ),
@@ -81,26 +159,27 @@ class _LoginPageState extends State<LoginPage> {
 
                     const SizedBox(height: 20),
 
-                    // Log In Button
+                    // Log In Button or Loader
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.lightBlueAccent,
-                          foregroundColor: Colors.white, // Ensure text is white
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          textStyle: const TextStyle(fontSize: 18),
-                        ),
-                        onPressed: () {
-                          // Add login logic here
-                        },
-                        child: const Text('Log In'),
-                      ),
+                      child: isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.lightBlueAccent,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                textStyle: const TextStyle(fontSize: 18),
+                              ),
+                              onPressed: handleLogin,
+                              child: const Text('Log In'),
+                            ),
                     ),
 
                     const SizedBox(height: 16),
                     Text(message, style: const TextStyle(color: Colors.red)),
-
                     const SizedBox(height: 24),
 
                     // Sign Up Redirect
