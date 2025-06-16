@@ -5,6 +5,7 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
+
 # MongoDB connection
 client = MongoClient('mongodb://localhost:27017/')
 db = client['codebud']
@@ -42,6 +43,12 @@ def login():
     else:
         return jsonify({'success': False, 'message': 'Incorrect password!'}), 401
 
+@app.route('/api/puzzles/<category>', methods=['GET'])
+def get_puzzles_by_category(category):
+    puzzles = list(db.puzzles.find({"category": category}))
+    for p in puzzles:
+        p['_id'] = str(p['_id'])  # Convert ObjectId to string
+    return jsonify({'puzzles': puzzles}), 200
+
 if __name__ == '__main__':
     app.run(debug=True)
-

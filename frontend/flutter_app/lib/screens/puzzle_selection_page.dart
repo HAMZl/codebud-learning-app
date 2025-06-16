@@ -1,120 +1,82 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class PuzzleSelectionPage extends StatelessWidget {
+import '../widgets/puzzle_button.dart';
+
+class PuzzleSelectionPage extends StatefulWidget {
   final String title;
+  final String category;
 
-  const PuzzleSelectionPage({super.key, required this.title});
+  const PuzzleSelectionPage({
+    super.key,
+    required this.title,
+    required this.category,
+  });
+
+  @override
+  State<PuzzleSelectionPage> createState() => _PuzzleSelectionPageState();
+}
+
+class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
+  List<Map<String, dynamic>> puzzles = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPuzzles();
+  }
+
+  Future<void> fetchPuzzles() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://127.0.0.1:5000/api/puzzles/${widget.category}'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          puzzles = List<Map<String, dynamic>>.from(data['puzzles']);
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load puzzles');
+      }
+    } catch (e) {
+      print('Error fetching puzzles: $e');
+      setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.lightBlue[50],
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 🔝 Header with Logo
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'CodeBud',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
-                      color: Colors.deepPurple,
+      appBar: AppBar(title: Text(widget.title)),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: puzzles.isEmpty
+                  ? const Center(child: Text("No puzzles found."))
+                  : ListView.separated(
+                      itemCount: puzzles.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 16),
+                      itemBuilder: (context, index) {
+                        final puzzle = puzzles[index];
+                        return PuzzleButton(
+                          label: puzzle['title'] ?? 'Puzzle ${index + 1}',
+                          onPressed: () {
+                            Navigator.pushNamed(
+                              context,
+                              '/puzzle',
+                              arguments: puzzle['id'], // Pass puzzle ID
+                            );
+                          },
+                        );
+                      },
                     ),
-                  ),
-                  Image.asset(
-                    'lib/assets/images/codebud_logo.png',
-                    height: 50,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // 🧠 Dynamic Welcome Title
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.deepPurple,
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // 🔲 Puzzle Grid Cards
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 20,
-                  mainAxisSpacing: 20,
-                  childAspectRatio: 0.85,
-                  children: [
-                    _buildPuzzleCard(
-                      title: 'Sequencing',
-                      image: 'lib/assets/images/sequencing.png',
-                      color: Colors.blue[100]!,
-                      onTap: () {},
-                    ),
-                    _buildPuzzleCard(
-                      title: 'Loops',
-                      image: 'lib/assets/images/loops.png',
-                      color: Colors.green[100]!,
-                      onTap: () {},
-                    ),
-                    _buildPuzzleCard(
-                      title: 'Conditionals',
-                      image: 'lib/assets/images/conditionals.png',
-                      color: Colors.yellow[100]!,
-                      onTap: () {},
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPuzzleCard({
-    required String title,
-    required String image,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.deepPurple.shade100),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(image, height: 90),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: Colors.deepPurple,
-              ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }
