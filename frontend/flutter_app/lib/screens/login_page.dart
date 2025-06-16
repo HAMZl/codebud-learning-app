@@ -17,7 +17,8 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final String? successMsg = ModalRoute.of(context)?.settings.arguments as String?;
+    final String? successMsg =
+        ModalRoute.of(context)?.settings.arguments as String?;
     if (successMsg != null && successMsg.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -52,10 +53,12 @@ class _LoginPageState extends State<LoginPage> {
 
       if (response.statusCode == 200 && data['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'] ?? 'Login successful!'), backgroundColor: Colors.green),
+          SnackBar(
+            content: Text(data['message'] ?? 'Login successful!'),
+            backgroundColor: Colors.green,
+          ),
         );
-        // Navigate to home if needed
-        // Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacementNamed(context, '/home');
       } else {
         setState(() => message = data['message'] ?? 'Login failed!');
         ScaffoldMessenger.of(context).showSnackBar(
@@ -135,18 +138,18 @@ class _LoginPageState extends State<LoginPage> {
                     child: isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        textStyle: const TextStyle(fontSize: 18),
-                      ),
-                      onPressed: handleLogin,
-                      child: const Text('Log In'),
-                    ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.deepPurple,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              textStyle: const TextStyle(fontSize: 18),
+                            ),
+                            onPressed: handleLogin,
+                            child: const Text('Log In'),
+                          ),
                   ),
 
                   const SizedBox(height: 16),
@@ -158,7 +161,8 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       const Text("Don't have an account? "),
                       TextButton(
-                        onPressed: () => Navigator.pushNamed(context, '/signup'),
+                        onPressed: () =>
+                            Navigator.pushNamed(context, '/signup'),
                         child: const Text('Sign up'),
                       ),
                     ],

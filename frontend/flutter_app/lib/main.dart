@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/screens/puzzle_gameplay.dart';
 import 'screens/launch_page.dart';
 import 'screens/login_page.dart';
 import 'screens/signup_page.dart';
 import 'screens/puzzle_selection_page.dart';
 import 'screens/puzzle_gameplay.dart';
+import 'screens/home_page.dart';
 
 void main() {
   runApp(const CodeBudApp());
@@ -24,6 +24,7 @@ class CodeBudApp extends StatelessWidget {
       // Static routes
       routes: {
         '/': (context) => const LaunchPage(),
+        '/home': (context) => const HomePage(),
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignUpPage(),
         '/puzzle': (context) => const PuzzleScreen(),
