@@ -29,6 +29,6 @@ flutter:
   assets:
     - lib/assets/images/codebud_logo.png
     - assets/images/codebud_logo.png
-    - lib/assets/images/loops.png
-    - lib/assets/images/sequencing.png
-    - lib/assets/images/conditionals.png
+    - assets/images/loops.png
+    - assets/images/sequencing.png
+    - assets/images/conditionals.png

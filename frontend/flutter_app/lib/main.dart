@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/screens/puzzle_gameplay.dart';
 import 'screens/launch_page.dart';
 import 'screens/login_page.dart';
 import 'screens/signup_page.dart';
@@ -18,15 +19,16 @@ class CodeBudApp extends StatelessWidget {
       title: 'CodeBud',
       theme: ThemeData(primarySwatch: Colors.deepPurple),
       initialRoute: '/',
+
       // Static routes
       routes: {
         '/': (context) => const LaunchPage(),
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignUpPage(),
         '/puzzle': (context) => const PuzzleScreen(),
-
       },
-      // Dynamic routing for PuzzleSelectionPage with title and category
+
+      // Dynamic routes for PuzzleSelectionPage with title + category
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case '/sequences':

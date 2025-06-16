@@ -19,7 +19,7 @@ class _LoginPageState extends State<LoginPage> {
     super.didChangeDependencies();
     // Show message if passed from sign up page
     final String? successMsg =
-        ModalRoute.of(context)?.settings.arguments as String?;
+    ModalRoute.of(context)?.settings.arguments as String?;
     if (successMsg != null && successMsg.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -165,17 +165,17 @@ class _LoginPageState extends State<LoginPage> {
                       child: isLoading
                           ? const Center(child: CircularProgressIndicator())
                           : ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.lightBlueAccent,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                textStyle: const TextStyle(fontSize: 18),
-                              ),
-                              onPressed: handleLogin,
-                              child: const Text('Log In'),
-                            ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.lightBlueAccent,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                          textStyle: const TextStyle(fontSize: 18),
+                        ),
+                        onPressed: handleLogin,
+                        child: const Text('Log In'),
+                      ),
                     ),
 
                     const SizedBox(height: 16),
