@@ -4,6 +4,7 @@ import 'screens/login_page.dart';
 import 'screens/signup_page.dart';
 import 'screens/puzzle_selection_page.dart';
 
+
 void main() {
   runApp(const CodeBudApp());
 }
@@ -23,12 +24,12 @@ class CodeBudApp extends StatelessWidget {
         '/': (context) => const LaunchPage(),
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignUpPage(),
-        '/puzzles': (context) => const PuzzleSelectionPage(title: 'Puzzle Selection'), // ✅ FIXED
-        '/sequences': (context) => const PuzzleSelectionPage(title: 'Sequence Puzzles'),
+        '/sequences': (context) =>
+            const PuzzleSelectionPage(title: 'Sequence Puzzles'),
         '/loops': (context) => const PuzzleSelectionPage(title: 'Loop Puzzles'),
-        '/conditionals': (context) => const PuzzleSelectionPage(title: 'Conditional Puzzles'),
+        '/conditionals': (context) =>
+            const PuzzleSelectionPage(title: 'Conditional Puzzles'),
       },
-
     );
   }
 }
