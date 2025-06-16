@@ -47,7 +47,7 @@ class LaunchPage extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-// 📝 Sign up button (same style)
+              // 📝 Sign up button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -61,6 +61,25 @@ class LaunchPage extends StatelessWidget {
                     Navigator.pushNamed(context, '/signup');
                   },
                   child: const Text('Sign Up'),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // 🧩 Puzzle button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orangeAccent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    textStyle: const TextStyle(fontSize: 18),
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/puzzles');
+                  },
+                  child: const Text('Explore Puzzles'),
                 ),
               ),
             ],
