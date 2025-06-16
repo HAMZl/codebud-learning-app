@@ -59,32 +59,32 @@ class HomePage extends StatelessWidget {
             // Grid of learning cards
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: GridView.count(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
                   childAspectRatio: 0.95,
                   children: [
                     _buildCard(
                       context,
                       title: 'Sequencing',
                       icon: Icons.timeline,
-                      bgColor: Colors.blue[50]!,
+                      bgColor: Colors.blue[200]!,
                       onTapRoute: '/sequences',
                     ),
                     _buildCard(
                       context,
                       title: 'Loops',
                       icon: Icons.loop,
-                      bgColor: Colors.green[50]!,
+                      bgColor: Colors.green[200]!,
                       onTapRoute: '/loops',
                     ),
                     _buildCard(
                       context,
                       title: 'Conditionals',
                       icon: Icons.question_answer,
-                      bgColor: Colors.yellow[50]!,
+                      bgColor: Colors.yellow[200]!,
                       onTapRoute: '/conditionals',
                     ),
                   ],
@@ -112,12 +112,12 @@ class HomePage extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.deepPurple.shade100),
         ),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 40, color: Colors.deepPurple),
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
             Text(
               title,
               style: const TextStyle(
