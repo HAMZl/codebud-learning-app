@@ -17,7 +17,6 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Show message if passed from sign up page
     final String? successMsg =
         ModalRoute.of(context)?.settings.arguments as String?;
     if (successMsg != null && successMsg.isNotEmpty) {
@@ -42,9 +41,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await http.post(
-        Uri.parse(
-          'http://127.0.0.1:5000/login',
-        ), // Change this to your backend URL if deploying
+        Uri.parse('http://127.0.0.1:5000/login'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(body),
       );
@@ -52,9 +49,7 @@ class _LoginPageState extends State<LoginPage> {
 
       final data = jsonDecode(response.body);
 
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
 
       if (response.statusCode == 200 && data['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -65,9 +60,7 @@ class _LoginPageState extends State<LoginPage> {
         );
         Navigator.pushReplacementNamed(context, '/home');
       } else {
-        setState(() {
-          message = data['message'] ?? 'Login failed!';
-        });
+        setState(() => message = data['message'] ?? 'Login failed!');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message), backgroundColor: Colors.red),
         );
@@ -87,118 +80,97 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.white, // Matches LaunchPage
       body: SafeArea(
-        child: Stack(
-          children: [
-            // Top-right logo
-            Positioned(
-              top: 16,
-              right: 16,
-              child: Image.asset('assets/images/codebud_logo.png', height: 70),
-            ),
-
-            // Main form content
-            Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 24,
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 16),
-                    const Icon(
-                      Icons.lock,
-                      size: 72,
-                      color: Colors.lightBlueAccent,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const Icon(Icons.lock, size: 80, color: Colors.deepPurple),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Welcome Back!',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.deepPurple,
                     ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Welcome back',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.lightBlueAccent,
-                      ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Username
+                  TextField(
+                    controller: usernameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Username *',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.person),
                     ),
-                    const SizedBox(height: 32),
+                  ),
+                  const SizedBox(height: 20),
 
-                    // Username field
-                    TextField(
-                      controller: usernameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Username *',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.person),
-                      ),
+                  // Password
+                  TextField(
+                    controller: passwordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Password *',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.lock),
                     ),
-                    const SizedBox(height: 20),
+                  ),
 
-                    // Password field
-                    TextField(
-                      controller: passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Password *',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.lock),
-                      ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {},
+                      child: const Text('Forgot password?'),
                     ),
+                  ),
 
-                    // Forgot password
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {},
-                        child: const Text('Forgot password?'),
-                      ),
-                    ),
+                  const SizedBox(height: 16),
 
-                    const SizedBox(height: 20),
-
-                    // Log In Button or Loader
-                    SizedBox(
-                      width: double.infinity,
-                      child: isLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.lightBlueAccent,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                textStyle: const TextStyle(fontSize: 18),
+                  // Login button
+                  SizedBox(
+                    width: double.infinity,
+                    child: isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.deepPurple,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              onPressed: handleLogin,
-                              child: const Text('Log In'),
+                              textStyle: const TextStyle(fontSize: 18),
                             ),
-                    ),
+                            onPressed: handleLogin,
+                            child: const Text('Log In'),
+                          ),
+                  ),
 
-                    const SizedBox(height: 16),
-                    Text(message, style: const TextStyle(color: Colors.red)),
-                    const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+                  Text(message, style: const TextStyle(color: Colors.red)),
+                  const SizedBox(height: 16),
 
-                    // Sign Up Redirect
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text("Don't have an account? "),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/signup');
-                          },
-                          child: const Text('Sign up'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Don't have an account? "),
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.pushNamed(context, '/signup'),
+                        child: const Text('Sign up'),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

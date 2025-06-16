@@ -56,27 +56,27 @@ class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: puzzles.isEmpty
-                  ? const Center(child: Text("No puzzles found."))
-                  : ListView.separated(
-                      itemCount: puzzles.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 16),
-                      itemBuilder: (context, index) {
-                        final puzzle = puzzles[index];
-                        return PuzzleButton(
-                          label: puzzle['title'] ?? 'Puzzle ${index + 1}',
-                          onPressed: () {
-                            Navigator.pushNamed(
-                              context,
-                              '/puzzle',
-                              arguments: puzzle['id'], // Pass puzzle ID
-                            );
-                          },
-                        );
-                      },
-                    ),
-            ),
+        padding: const EdgeInsets.all(24.0),
+        child: puzzles.isEmpty
+            ? const Center(child: Text("No puzzles found."))
+            : ListView.separated(
+          itemCount: puzzles.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 16),
+          itemBuilder: (context, index) {
+            final puzzle = puzzles[index];
+            return PuzzleButton(
+              label: puzzle['title'] ?? 'Puzzle ${index + 1}',
+              onPressed: () {
+                Navigator.pushNamed(
+                  context,
+                  '/puzzle',
+                  arguments: puzzle['id'], // Pass puzzle ID
+                );
+              },
+            );
+          },
+        ),
+      ),
     );
   }
 }

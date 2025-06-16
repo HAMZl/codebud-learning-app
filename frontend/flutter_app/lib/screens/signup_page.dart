@@ -20,22 +20,23 @@ class _SignUpPageState extends State<SignUpPage> {
   String message = '';
   bool isLoading = false;
   bool isError = false;
+  bool isConsentGiven = false;
 
-  // Validation function
   bool validateFields() {
     if (parentNameController.text.isEmpty ||
         emailController.text.isEmpty ||
         childNameController.text.isEmpty ||
         childAgeController.text.isEmpty ||
         usernameController.text.isEmpty ||
-        passwordController.text.isEmpty) {
+        passwordController.text.isEmpty ||
+        !isConsentGiven) {
       setState(() {
         isError = true;
-        message = "Please fill in all required fields.";
+        message = "Please complete all fields and provide consent.";
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('All fields are required.'),
+        SnackBar(
+          content: Text(message),
           backgroundColor: Colors.red,
         ),
       );
@@ -44,7 +45,6 @@ class _SignUpPageState extends State<SignUpPage> {
     return true;
   }
 
-  // Function to handle sign up
   Future<void> handleSignUp() async {
     if (!validateFields()) return;
 
@@ -65,9 +65,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
     try {
       final response = await http.post(
-        Uri.parse(
-          'http://127.0.0.1:5000/signup',
-        ), // CHANGE TO YOUR BACKEND URL IF NEEDED
+        Uri.parse('http://127.0.0.1:5000/signup'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(body),
       );
@@ -129,7 +127,7 @@ class _SignUpPageState extends State<SignUpPage> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.deepPurple, width: 3),
+        borderSide: const BorderSide(color: Colors.deepPurple, width: 2),
       ),
     );
   }
@@ -145,123 +143,149 @@ class _SignUpPageState extends State<SignUpPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Logo at top right
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Image.asset('assets/images/codebud_logo.png', height: 60),
-                  ],
-                ),
                 const SizedBox(height: 16),
 
                 Center(
                   child: Text(
-                    'Create an Account',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    'Create Account',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 32),
-                Text(
-                  '👩 Parent Information',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
+                const Divider(height: 32, thickness: 1),
 
-                TextField(
-                  controller: parentNameController,
-                  decoration: styledInputDecoration(
-                    'Parent Name',
-                    Icons.person,
-                  ),
-                ),
+                const Text('👩 Parent Information',
+                    style:
+                    TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
 
                 TextField(
                   controller: emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: styledInputDecoration('Email', Icons.email),
-                ),
-
-                const SizedBox(height: 32),
-                Text(
-                  '🧒 Child Information',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
-
-                TextField(
-                  controller: childNameController,
-                  decoration: styledInputDecoration(
-                    'Child Name',
-                    Icons.child_care,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                TextField(
-                  controller: childAgeController,
-                  keyboardType: TextInputType.number,
-                  decoration: styledInputDecoration(
-                    'Child Age',
-                    Icons.calendar_today,
-                  ),
-                ),
-
-                const SizedBox(height: 32),
-                Text(
-                  '🔑 Account Details',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
-
-                TextField(
-                  controller: usernameController,
-                  decoration: styledInputDecoration(
-                    'Username',
-                    Icons.account_circle,
-                  ),
+                  decoration: styledInputDecoration('Parent Email', Icons.email),
                 ),
                 const SizedBox(height: 16),
 
                 TextField(
                   controller: passwordController,
                   obscureText: true,
-                  decoration: styledInputDecoration('Password', Icons.lock),
+                  decoration:
+                  styledInputDecoration('Password', Icons.lock_outline),
                 ),
 
-                const SizedBox(height: 32),
+                const Padding(
+                  padding: EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    "Password must be at least 8 characters and include:\n"
+                        "• 1 uppercase letter (A–Z)\n"
+                        "• 1 lowercase letter (a–z)\n"
+                        "• 1 number (0–9)\n"
+                        "• 1 special character (!, @, #, etc.)",
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                const Text('🧒 Child Information',
+                    style:
+                    TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+
+                TextField(
+                  controller: childNameController,
+                  decoration:
+                  styledInputDecoration("Child's Name", Icons.child_care),
+                ),
+                const SizedBox(height: 16),
+
+                TextField(
+                  controller: childAgeController,
+                  keyboardType: TextInputType.number,
+                  decoration:
+                  styledInputDecoration("Child's Age", Icons.cake),
+                ),
+
+                const SizedBox(height: 24),
+
+                Row(
+                  children: [
+                    Checkbox(
+                      value: isConsentGiven,
+                      onChanged: (value) {
+                        setState(() {
+                          isConsentGiven = value ?? false;
+                        });
+                      },
+                    ),
+                    const Expanded(
+                      child: Text(
+                        "Yes, I want to receive updates and news about CodeBud.",
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
 
                 SizedBox(
                   width: double.infinity,
                   child: isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.lightBlueAccent,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            textStyle: const TextStyle(fontSize: 18),
-                          ),
-                          onPressed: handleSignUp,
-                          child: const Text('Sign Up'),
-                        ),
-                ),
-
-                const SizedBox(height: 16),
-                Center(
-                  child: Text(
-                    message,
-                    style: TextStyle(
-                      color: isError ? Colors.red : Colors.green,
-                      fontWeight: FontWeight.w600,
+                    onPressed: handleSignUp,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      "Create Account",
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
 
+                const SizedBox(height: 20),
+
+                Center(
+                  child: Column(
+                    children: [
+                      const Text(
+                        "By creating an account you agree to the ",
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        children: const [
+                          Text("Privacy Policy",
+                              style: TextStyle(
+                                  color: Colors.blue,
+                                  fontSize: 12,
+                                  decoration: TextDecoration.underline)),
+                          Text(" and ",
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.black)),
+                          Text("Terms of Use",
+                              style: TextStyle(
+                                  color: Colors.blue,
+                                  fontSize: 12,
+                                  decoration: TextDecoration.underline)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
