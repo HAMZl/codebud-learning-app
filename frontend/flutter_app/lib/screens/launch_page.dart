@@ -6,27 +6,6 @@ class LaunchPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-<<<<<<< HEAD
-      backgroundColor: Colors.lightBlue[100], // Soft blue for kid-friendly feel
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // 🧸 Buddy mascot logo
-              Image.asset('assets/images/codebud_logo.png', height: 180),
-              const SizedBox(height: 32),
-              const Text(
-                'Welcome to CodeBud!',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.deepPurple,
-                ),
-              ),
-              const SizedBox(height: 40),
-=======
       backgroundColor: Colors.white, // white background
       body: SafeArea(
         child: Center(
@@ -36,13 +15,8 @@ class LaunchPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Spacer(flex: 1),
->>>>>>> puzzle-selection-ui
-
-                // 🔰 Logo
-                Image.asset(
-                  'assets/images/codebud_logo.png',
-                  height: 140,
-                ),
+                // Logo
+                Image.asset('assets/images/codebud_logo.png', height: 140),
                 const SizedBox(height: 24),
 
                 // Title
@@ -60,16 +34,8 @@ class LaunchPage extends StatelessWidget {
                 const Text(
                   'A Visual Coding Adventure for Kids',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
-
-<<<<<<< HEAD
-              const SizedBox(height: 16),
-            ],
-=======
                 const Spacer(flex: 1),
 
                 // 🔐 Login Button
@@ -114,7 +80,6 @@ class LaunchPage extends StatelessWidget {
                 const Spacer(flex: 2),
               ],
             ),
->>>>>>> puzzle-selection-ui
           ),
         ),
       ),
