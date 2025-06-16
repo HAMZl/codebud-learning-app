@@ -63,8 +63,7 @@ class _LoginPageState extends State<LoginPage> {
             backgroundColor: Colors.green,
           ),
         );
-        // TODO: Redirect to your home/dashboard page if needed
-        // Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacementNamed(context, '/home');
       } else {
         setState(() {
           message = data['message'] ?? 'Login failed!';

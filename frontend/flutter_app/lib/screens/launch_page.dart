@@ -14,10 +14,7 @@ class LaunchPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // 🧸 Buddy mascot logo
-              Image.asset(
-                'assets/images/codebud_logo.png',
-                height: 180,
-              ),
+              Image.asset('assets/images/codebud_logo.png', height: 180),
               const SizedBox(height: 32),
               const Text(
                 'Welcome to CodeBud!',
@@ -65,23 +62,6 @@ class LaunchPage extends StatelessWidget {
               ),
 
               const SizedBox(height: 16),
-
-              // 🧩 Puzzle button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orangeAccent,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    textStyle: const TextStyle(fontSize: 18),
-                  ),
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/puzzles');
-                  },
-                  child: const Text('Explore Puzzles'),
-                ),
-              ),
             ],
           ),
         ),

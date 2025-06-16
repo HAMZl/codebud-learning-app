@@ -21,7 +21,6 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         children: [
           const SizedBox(height: 20),
 
-          // 📦 Placeholder for puzzle grid
           Container(
             height: 250,
             width: 250,
@@ -38,7 +37,6 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
             ),
           ),
 
-          // 🧱 Available draggable commands
           const Text("Available Moves:", style: TextStyle(fontSize: 18)),
           const SizedBox(height: 10),
           Wrap(
