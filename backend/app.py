@@ -50,5 +50,16 @@ def get_puzzles_by_category(category):
         p['_id'] = str(p['_id'])  # Convert ObjectId to string
     return jsonify({'puzzles': puzzles}), 200
 
+@app.route('/api/puzzle/<puzzle_id>', methods=['GET'])
+def get_puzzle(puzzle_id):
+    puzzle = db.puzzles.find_one({"id": puzzle_id})
+
+    if not puzzle:
+        return jsonify({"error": "Puzzle not found"}), 404
+
+    # Remove MongoDB _id if not needed on frontend
+    puzzle['_id'] = str(puzzle['_id'])
+    return jsonify(puzzle)
+
 if __name__ == '__main__':
     app.run(debug=True)
