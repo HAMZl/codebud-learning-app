@@ -6,7 +6,7 @@ class LaunchPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // white background
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -15,19 +15,20 @@ class LaunchPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Spacer(flex: 1),
-                // Logo
-                Image.asset('assets/images/codebud_logo.png', height: 140),
-                const SizedBox(height: 24),
 
-                // Title
+                // Title above logo
                 const Text(
                   'CodeBud',
                   style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    fontSize: 36,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.black,
                   ),
                 ),
+                const SizedBox(height: 16),
+
+                // Logo below title
+                Image.asset('assets/images/codebud_logo.png', height: 200),
                 const SizedBox(height: 8),
 
                 // Subtitle
@@ -36,16 +37,21 @@ class LaunchPage extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
+
                 const Spacer(flex: 1),
 
-                // 🔐 Login Button
+                // Log In Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6C63FF), // purple-blue
+                      backgroundColor: const Color(0xFF6C63FF),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
+                      textStyle: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -58,7 +64,7 @@ class LaunchPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // 📝 Sign up Button
+                // Sign Up Button
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton(
@@ -66,6 +72,10 @@ class LaunchPage extends StatelessWidget {
                       foregroundColor: const Color(0xFF6C63FF),
                       side: const BorderSide(color: Color(0xFF6C63FF)),
                       padding: const EdgeInsets.symmetric(vertical: 16),
+                      textStyle: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
