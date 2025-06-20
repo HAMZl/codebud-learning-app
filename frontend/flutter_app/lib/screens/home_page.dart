@@ -10,7 +10,7 @@ class HomePage extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Top App Bar
+            // 🔝 Top App Bar
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Stack(
@@ -43,7 +43,7 @@ class HomePage extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // Greeting Text
+            // 🧠 Greeting Text
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
@@ -59,13 +59,10 @@ class HomePage extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // Puzzle Category Grid
+            // 🧩 Puzzle Category Grid
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: GridView.count(
                   crossAxisCount: 2,
                   crossAxisSpacing: 12,
@@ -104,12 +101,12 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildCard(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required Color bgColor,
-    required String onTapRoute,
-  }) {
+      BuildContext context, {
+        required String title,
+        required IconData icon,
+        required Color bgColor,
+        required String onTapRoute,
+      }) {
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, onTapRoute),
       child: Container(

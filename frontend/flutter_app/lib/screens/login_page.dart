@@ -18,7 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final String? successMsg =
-        ModalRoute.of(context)?.settings.arguments as String?;
+    ModalRoute.of(context)?.settings.arguments as String?;
     if (successMsg != null && successMsg.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -138,18 +138,18 @@ class _LoginPageState extends State<LoginPage> {
                     child: isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryColor,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              textStyle: const TextStyle(fontSize: 18),
-                            ),
-                            onPressed: handleLogin,
-                            child: const Text('Log In'),
-                          ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        textStyle: const TextStyle(fontSize: 18),
+                      ),
+                      onPressed: handleLogin,
+                      child: const Text('Log In'),
+                    ),
                   ),
 
                   const SizedBox(height: 16),

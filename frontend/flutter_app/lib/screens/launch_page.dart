@@ -49,8 +49,7 @@ class LaunchPage extends StatelessWidget {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       textStyle: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                          fontSize: 20, fontWeight: FontWeight.bold
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -73,8 +72,7 @@ class LaunchPage extends StatelessWidget {
                       side: const BorderSide(color: Color(0xFF6C63FF)),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       textStyle: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                          fontSize: 20, fontWeight: FontWeight.bold
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),

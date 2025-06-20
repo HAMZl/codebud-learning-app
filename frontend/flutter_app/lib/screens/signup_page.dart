@@ -118,10 +118,7 @@ class _SignUpPageState extends State<SignUpPage> {
       prefixIcon: Icon(icon, color: primaryColor),
       filled: true,
       fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(
-        vertical: 16.0,
-        horizontal: 16.0,
-      ),
+      contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: Colors.grey),
@@ -172,10 +169,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
                 TextField(
                   controller: parentNameController,
-                  decoration: styledInputDecoration(
-                    'Parent Name',
-                    Icons.person,
-                  ),
+                  decoration: styledInputDecoration('Parent Name', Icons.person),
                 ),
                 const SizedBox(height: 16),
 
@@ -197,10 +191,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
                 TextField(
                   controller: childNameController,
-                  decoration: styledInputDecoration(
-                    'Child Name',
-                    Icons.child_care,
-                  ),
+                  decoration: styledInputDecoration('Child Name', Icons.child_care),
                 ),
                 const SizedBox(height: 16),
 
@@ -222,10 +213,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
                 TextField(
                   controller: usernameController,
-                  decoration: styledInputDecoration(
-                    'Username',
-                    Icons.account_circle,
-                  ),
+                  decoration: styledInputDecoration('Username', Icons.account_circle),
                 ),
                 const SizedBox(height: 16),
 
@@ -242,18 +230,18 @@ class _SignUpPageState extends State<SignUpPage> {
                   child: isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryColor,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            textStyle: const TextStyle(fontSize: 18),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: handleSignUp,
-                          child: const Text('Sign Up'),
-                        ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      textStyle: const TextStyle(fontSize: 18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: handleSignUp,
+                    child: const Text('Sign Up'),
+                  ),
                 ),
 
                 const SizedBox(height: 16),
