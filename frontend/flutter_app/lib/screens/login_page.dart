@@ -48,7 +48,6 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
 
       final data = jsonDecode(response.body);
-
       setState(() => isLoading = false);
 
       if (response.statusCode == 200 && data['success'] == true) {
@@ -79,8 +78,10 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    const Color primaryColor = Color(0xFF6C63FF);
+
     return Scaffold(
-      backgroundColor: Colors.white, // Matches LaunchPage
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -88,19 +89,20 @@ class _LoginPageState extends State<LoginPage> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  const Icon(Icons.lock, size: 80, color: Colors.deepPurple),
+                  // CodeBud Logo
+                  Image.asset('assets/images/codebud_logo.png', height: 120),
                   const SizedBox(height: 24),
+
                   const Text(
-                    'Welcome Back!',
+                    'Let’s start your coding journey!',
                     style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.deepPurple,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
                     ),
                   ),
                   const SizedBox(height: 32),
 
-                  // Username
                   TextField(
                     controller: usernameController,
                     decoration: const InputDecoration(
@@ -111,7 +113,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Password
                   TextField(
                     controller: passwordController,
                     obscureText: true,
@@ -132,14 +133,13 @@ class _LoginPageState extends State<LoginPage> {
 
                   const SizedBox(height: 16),
 
-                  // Login button
                   SizedBox(
                     width: double.infinity,
                     child: isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepPurple,
+                              backgroundColor: primaryColor,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
