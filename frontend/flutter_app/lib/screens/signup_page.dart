@@ -21,7 +21,8 @@ class _SignUpPageState extends State<SignUpPage> {
   bool isLoading = false;
   bool isError = false;
 
-  // Validation function
+  static const Color primaryColor = Color(0xFF6C63FF);
+
   bool validateFields() {
     if (parentNameController.text.isEmpty ||
         emailController.text.isEmpty ||
@@ -44,7 +45,6 @@ class _SignUpPageState extends State<SignUpPage> {
     return true;
   }
 
-  // Function to handle sign up
   Future<void> handleSignUp() async {
     if (!validateFields()) return;
 
@@ -65,19 +65,14 @@ class _SignUpPageState extends State<SignUpPage> {
 
     try {
       final response = await http.post(
-        Uri.parse(
-          'http://127.0.0.1:5000/signup',
-        ), // CHANGE TO YOUR BACKEND URL IF NEEDED
+        Uri.parse('http://127.0.0.1:5000/signup'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(body),
       );
 
       if (!mounted) return;
-
       final data = jsonDecode(response.body);
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
 
       if (response.statusCode == 200 && data['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -119,17 +114,25 @@ class _SignUpPageState extends State<SignUpPage> {
 
   InputDecoration styledInputDecoration(String label, IconData icon) {
     return InputDecoration(
-      prefixIcon: Icon(icon, color: Colors.lightBlueAccent),
       labelText: label,
+      prefixIcon: Icon(icon, color: primaryColor),
       filled: true,
-      fillColor: Colors.deepPurple.shade50,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(
+        vertical: 16.0,
+        horizontal: 16.0,
+      ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.deepPurple),
+        borderSide: const BorderSide(color: Colors.grey),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.grey),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.deepPurple, width: 3),
+        borderSide: const BorderSide(color: primaryColor, width: 2),
       ),
     );
   }
@@ -145,13 +148,6 @@ class _SignUpPageState extends State<SignUpPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Logo at top right
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Image.asset('assets/images/codebud_logo.png', height: 60),
-                  ],
-                ),
                 const SizedBox(height: 16),
 
                 Center(
@@ -159,6 +155,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     'Create an Account',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   ),
                 ),
@@ -166,7 +163,10 @@ class _SignUpPageState extends State<SignUpPage> {
                 const SizedBox(height: 32),
                 Text(
                   '👩 Parent Information',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -188,7 +188,10 @@ class _SignUpPageState extends State<SignUpPage> {
                 const SizedBox(height: 32),
                 Text(
                   '🧒 Child Information',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -204,16 +207,16 @@ class _SignUpPageState extends State<SignUpPage> {
                 TextField(
                   controller: childAgeController,
                   keyboardType: TextInputType.number,
-                  decoration: styledInputDecoration(
-                    'Child Age',
-                    Icons.calendar_today,
-                  ),
+                  decoration: styledInputDecoration('Child Age', Icons.cake),
                 ),
 
                 const SizedBox(height: 32),
                 Text(
                   '🔑 Account Details',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -240,10 +243,13 @@ class _SignUpPageState extends State<SignUpPage> {
                       ? const Center(child: CircularProgressIndicator())
                       : ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.lightBlueAccent,
+                            backgroundColor: primaryColor,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             textStyle: const TextStyle(fontSize: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                           onPressed: handleSignUp,
                           child: const Text('Sign Up'),
@@ -268,7 +274,10 @@ class _SignUpPageState extends State<SignUpPage> {
                     const Text("Already have an account? "),
                     TextButton(
                       onPressed: () => Navigator.pushNamed(context, '/login'),
-                      child: const Text('Login'),
+                      child: Text(
+                        'Login',
+                        style: TextStyle(color: primaryColor),
+                      ),
                     ),
                   ],
                 ),
