@@ -6,85 +6,91 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // white background to match design
+      backgroundColor: Colors.white, // Match clean white background
       body: SafeArea(
         child: Column(
           children: [
-            // Top bar with logo
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // Top App Bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Stack(
                 children: [
-                  const Text(
-                    'CodeBud',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                      color: Colors.deepPurple,
+                  const Align(
+                    alignment: Alignment.center,
+                    child: Text(
+                      'CodeBud',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
                     ),
                   ),
-                  ClipOval(
-                    child: Image.asset(
-                      'lib/assets/images/codebud_logo.png',
-                      height: 70,
-                      width: 70,
-                      fit: BoxFit.cover,
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/images/codebud_logo.png',
+                        height: 36,
+                        width: 36,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
-            // Greeting message
+            // Greeting Text
             const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0),
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
-                'Hey, Buddy! What will you learn today?',
+                'Hello, Buddy! What will you\nlearn today?',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                   color: Colors.black87,
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
 
-            const SizedBox(height: 52),
+            const SizedBox(height: 24),
 
-            // Grid of learning cards
+            // Puzzle Category Grid
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: GridView.count(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 0.95,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1,
                   children: [
                     _buildCard(
                       context,
                       title: 'Sequencing',
                       icon: Icons.timeline,
-                      bgColor: Colors.blue[200]!,
+                      bgColor: Colors.blue[300]!,
                       onTapRoute: '/sequences',
                     ),
                     _buildCard(
                       context,
                       title: 'Loops',
-                      icon: Icons.loop,
-                      bgColor: Colors.green[200]!,
+                      icon: Icons.repeat,
+                      bgColor: Colors.green[300]!,
                       onTapRoute: '/loops',
                     ),
                     _buildCard(
                       context,
                       title: 'Conditionals',
-                      icon: Icons.question_answer,
-                      bgColor: Colors.yellow[200]!,
+                      icon: Icons.device_unknown,
+                      bgColor: Colors.yellow[300]!,
                       onTapRoute: '/conditionals',
                     ),
                   ],
@@ -108,22 +114,25 @@ class HomePage extends StatelessWidget {
       onTap: () => Navigator.pushNamed(context, onTapRoute),
       child: Container(
         decoration: BoxDecoration(
-          color: bgColor,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.deepPurple.shade100),
+          border: Border.all(color: Colors.grey.shade300),
         ),
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 40, color: Colors.deepPurple),
-            const SizedBox(height: 6),
+            CircleAvatar(
+              backgroundColor: bgColor,
+              radius: 28,
+              child: Icon(icon, size: 28, color: Colors.deepPurple),
+            ),
+            const SizedBox(height: 12),
             Text(
               title,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: Colors.deepPurple,
+                color: Colors.black87,
               ),
             ),
           ],
