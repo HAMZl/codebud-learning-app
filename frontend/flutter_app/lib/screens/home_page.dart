@@ -31,8 +31,8 @@ class HomePage extends StatelessWidget {
                     child: ClipOval(
                       child: Image.asset(
                         'assets/images/codebud_logo.png',
-                        height: 36,
-                        width: 36,
+                        height: 50,
+                        width: 50,
                         fit: BoxFit.cover,
                       ),
                     ),
