@@ -12,24 +12,16 @@ class LaunchPage extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Spacer(flex: 1),
+                const Spacer(flex: 2),
 
-                // Title above logo
-                const Text(
-                  'CodeBud',
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.black,
-                  ),
+                // Logo with increased size and moved slightly upward
+                Image.asset(
+                  'assets/images/codebud_logo.png',
+                  height: 240,
                 ),
-                const SizedBox(height: 16),
 
-                // Logo below title
-                Image.asset('assets/images/codebud_logo.png', height: 200),
-                const SizedBox(height: 8),
+                const SizedBox(height: 16), // Subtle spacing below logo
 
                 // Subtitle
                 const Text(
@@ -38,14 +30,14 @@ class LaunchPage extends StatelessWidget {
                   style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
 
-                const Spacer(flex: 1),
+                const Spacer(flex: 3), // More space to push buttons lower
 
                 // Log In Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6C63FF),
+                      backgroundColor: const Color(0xFFFFA726), // Orange
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       textStyle: const TextStyle(
@@ -67,10 +59,10 @@ class LaunchPage extends StatelessWidget {
                 // Sign Up Button
                 SizedBox(
                   width: double.infinity,
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF6C63FF),
-                      side: const BorderSide(color: Color(0xFF6C63FF)),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFFA726),
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       textStyle: const TextStyle(
                         fontSize: 20,
