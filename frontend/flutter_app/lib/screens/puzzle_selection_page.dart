@@ -58,8 +58,8 @@ class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       backgroundColor: Colors.white,
       body: isLoading
