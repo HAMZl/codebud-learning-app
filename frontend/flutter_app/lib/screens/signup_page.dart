@@ -21,7 +21,7 @@ class _SignUpPageState extends State<SignUpPage> {
   bool isLoading = false;
   bool isError = false;
 
-  static const Color primaryColor = Color(0xFF6C63FF);
+  static const Color primaryColor = Color(0xFFFFA726); // Bright orange
 
   bool validateFields() {
     if (parentNameController.text.isEmpty ||
@@ -149,94 +149,67 @@ class _SignUpPageState extends State<SignUpPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 16),
-
                 Center(
                   child: Text(
                     'Create an Account',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
                   ),
                 ),
-
                 const SizedBox(height: 32),
-                Text(
-                  '👩 Parent Information',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                Text('👩 Parent Information',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w600,
+                        )),
                 const SizedBox(height: 16),
-
                 TextField(
                   controller: parentNameController,
-                  decoration: styledInputDecoration(
-                    'Parent Name',
-                    Icons.person,
-                  ),
+                  decoration: styledInputDecoration('Parent Name', Icons.person),
                 ),
                 const SizedBox(height: 16),
-
                 TextField(
                   controller: emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: styledInputDecoration('Email', Icons.email),
                 ),
-
                 const SizedBox(height: 32),
-                Text(
-                  '🧒 Child Information',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                Text('🧒 Child Information',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w600,
+                        )),
                 const SizedBox(height: 16),
-
                 TextField(
                   controller: childNameController,
-                  decoration: styledInputDecoration(
-                    'Child Name',
-                    Icons.child_care,
-                  ),
+                  decoration: styledInputDecoration('Child Name', Icons.child_care),
                 ),
                 const SizedBox(height: 16),
-
                 TextField(
                   controller: childAgeController,
                   keyboardType: TextInputType.number,
                   decoration: styledInputDecoration('Child Age', Icons.cake),
                 ),
-
                 const SizedBox(height: 32),
-                Text(
-                  '🔑 Account Details',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                Text('🔑 Account Details',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w600,
+                        )),
                 const SizedBox(height: 16),
-
                 TextField(
                   controller: usernameController,
-                  decoration: styledInputDecoration(
-                    'Username',
-                    Icons.account_circle,
-                  ),
+                  decoration: styledInputDecoration('Username', Icons.account_circle),
                 ),
                 const SizedBox(height: 16),
-
                 TextField(
                   controller: passwordController,
                   obscureText: true,
                   decoration: styledInputDecoration('Password', Icons.lock),
                 ),
-
                 const SizedBox(height: 32),
-
                 SizedBox(
                   width: double.infinity,
                   child: isLoading
@@ -255,7 +228,6 @@ class _SignUpPageState extends State<SignUpPage> {
                           child: const Text('Sign Up'),
                         ),
                 ),
-
                 const SizedBox(height: 16),
                 Center(
                   child: Text(
@@ -267,17 +239,16 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text("Already have an account? "),
                     TextButton(
                       onPressed: () => Navigator.pushNamed(context, '/login'),
-                      child: Text(
-                        'Login',
-                        style: TextStyle(color: primaryColor),
+                      style: TextButton.styleFrom(
+                        foregroundColor: primaryColor,
                       ),
+                      child: const Text('Login'),
                     ),
                   ],
                 ),

@@ -78,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryColor = Color(0xFF6C63FF);
+    const Color primaryColor = Color(0xFFFFA726); // Bright orange
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -89,7 +89,6 @@ class _LoginPageState extends State<LoginPage> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // CodeBud Logo
                   Image.asset('assets/images/codebud_logo.png', height: 180),
                   const SizedBox(height: 24),
 
@@ -163,7 +162,13 @@ class _LoginPageState extends State<LoginPage> {
                       TextButton(
                         onPressed: () =>
                             Navigator.pushNamed(context, '/signup'),
-                        child: const Text('Sign up'),
+                        child: const Text(
+                          'Sign up',
+                          style: TextStyle(
+                            color: primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
