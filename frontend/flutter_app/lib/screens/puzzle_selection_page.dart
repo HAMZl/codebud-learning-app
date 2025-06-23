@@ -70,7 +70,10 @@ class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
                             Navigator.pushNamed(
                               context,
                               '/puzzle',
-                              arguments: puzzle['id'], // Pass puzzle ID
+                              arguments: {
+                                'id': puzzle['id'],
+                                'title': puzzle['title'],
+                              },
                             );
                           },
                         );
