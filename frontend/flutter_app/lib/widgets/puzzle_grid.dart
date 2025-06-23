@@ -1,5 +1,3 @@
-// lib/widgets/puzzle_grid.dart
-
 import 'package:flutter/material.dart';
 
 class Point {
@@ -18,7 +16,7 @@ class Point {
   int get hashCode => row.hashCode ^ col.hashCode;
 }
 
-class PuzzleGrid extends StatelessWidget {
+class PuzzleGrid extends StatefulWidget {
   final int gridSize;
   final Point start;
   final Point goal;
@@ -33,20 +31,37 @@ class PuzzleGrid extends StatelessWidget {
   });
 
   @override
+  State<PuzzleGrid> createState() => PuzzleGridState();
+}
+
+class PuzzleGridState extends State<PuzzleGrid> {
+  late Point robotPosition;
+
+  @override
+  void initState() {
+    super.initState();
+    robotPosition = widget.start;
+  }
+
+  void updateRobot(Point newPosition) {
+    setState(() => robotPosition = newPosition);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: gridSize * 40,
-      height: gridSize * 40,
+      width: widget.gridSize * 40,
+      height: widget.gridSize * 40,
       child: GridView.builder(
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: gridSize * gridSize,
+        itemCount: widget.gridSize * widget.gridSize,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: gridSize,
+          crossAxisCount: widget.gridSize,
         ),
         itemBuilder: (context, index) {
-          final row = index ~/ gridSize;
-          final col = index % gridSize;
-          final icon = _getCellIcon(row, col);
+          final row = index ~/ widget.gridSize;
+          final col = index % widget.gridSize;
+          final icon = _getIcon(row, col);
           return Container(
             decoration: BoxDecoration(
               border: Border.all(color: Colors.black26),
@@ -61,11 +76,11 @@ class PuzzleGrid extends StatelessWidget {
     );
   }
 
-  String _getCellIcon(int row, int col) {
+  String _getIcon(int row, int col) {
     final point = Point(row, col);
-    if (point == start) return '🤖';
-    if (point == goal) return '⭐';
-    if (obstacles.contains(point)) return '🪨';
+    if (point == robotPosition) return '🤖';
+    if (point == widget.goal) return '⭐';
+    if (widget.obstacles.contains(point)) return '🪨';
     return '';
   }
 }

@@ -48,6 +48,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   Puzzle? currentPuzzle;
   bool isLoading = true;
   List<String> commandSequence = [];
+  final GlobalKey<PuzzleGridState> gridKey = GlobalKey<PuzzleGridState>();
 
   @override
   void didChangeDependencies() {
@@ -85,6 +86,37 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     }
   }
 
+  Future<void> playCommands() async {
+    if (currentPuzzle == null || gridKey.currentState == null) return;
+
+    Point pos = currentPuzzle!.start;
+
+    for (String move in commandSequence) {
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      Point next = switch (move) {
+        'Up' => Point(pos.row - 1, pos.col),
+        'Down' => Point(pos.row + 1, pos.col),
+        'Left' => Point(pos.row, pos.col - 1),
+        'Right' => Point(pos.row, pos.col + 1),
+        _ => pos,
+      };
+
+      final inBounds =
+          next.row >= 0 &&
+          next.col >= 0 &&
+          next.row < currentPuzzle!.gridSize &&
+          next.col < currentPuzzle!.gridSize;
+
+      final isBlocked = currentPuzzle!.obstacles.contains(next);
+
+      if (inBounds && !isBlocked) {
+        pos = next;
+        gridKey.currentState?.updateRobot(pos);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,6 +133,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                 children: [
                   const SizedBox(height: 20),
                   PuzzleGrid(
+                    key: gridKey,
                     gridSize: currentPuzzle!.gridSize,
                     start: currentPuzzle!.start,
                     goal: currentPuzzle!.goal,
@@ -166,10 +199,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: () {
-                      print("Playing sequence for $puzzleId: $commandSequence");
-                      // TODO: Add animation or backend update here
-                    },
+                    onPressed: playCommands,
                     child: const Text("Play"),
                   ),
                 ],
