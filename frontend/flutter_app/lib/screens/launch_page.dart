@@ -16,20 +16,9 @@ class LaunchPage extends StatelessWidget {
               children: [
                 const Spacer(flex: 1),
 
-                // Title above logo
-                const Text(
-                  'CodeBud',
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Logo below title
-                Image.asset('assets/images/codebud_logo.png', height: 200),
-                const SizedBox(height: 8),
+                // Logo moved up, enlarged
+                Image.asset('assets/images/codebud_logo.png', height: 240),
+                const SizedBox(height: 12),
 
                 // Subtitle
                 const Text(

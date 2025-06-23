@@ -90,7 +90,7 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 children: [
                   // CodeBud Logo
-                  Image.asset('assets/images/codebud_logo.png', height: 120),
+                  Image.asset('assets/images/codebud_logo.png', height: 180),
                   const SizedBox(height: 24),
 
                   const Text(
