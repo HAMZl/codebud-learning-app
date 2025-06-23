@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
-import '../widgets/puzzle_button.dart';
-
-class PuzzleSelectionPage extends StatefulWidget {
+class PuzzleSelectionPage extends StatelessWidget {
   final String title;
   final String category;
 
@@ -15,108 +11,128 @@ class PuzzleSelectionPage extends StatefulWidget {
   });
 
   @override
-  State<PuzzleSelectionPage> createState() => _PuzzleSelectionPageState();
-}
-
-class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
-  List<Map<String, dynamic>> puzzles = [];
-  bool isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    fetchPuzzles();
-  }
-
-  Future<void> fetchPuzzles() async {
-    try {
-      final response = await http.get(
-        Uri.parse('http://127.0.0.1:5000/api/puzzles/${widget.category}'),
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          puzzles = List<Map<String, dynamic>>.from(data['puzzles']);
-          isLoading = false;
-        });
-      } else {
-        throw Exception('Failed to load puzzles');
-      }
-    } catch (e) {
-      print('Error fetching puzzles: $e');
-      setState(() => isLoading = false);
-    }
-  }
-
-  Color getBackgroundColor() {
-    switch (widget.category) {
-      case 'sequence':
-        return const Color(0xFF4A148C); // Deep Purple
-      case 'loop':
-        return const Color(0xFF00695C); // Teal
-      case 'conditional':
-        return const Color(0xFFBF360C); // Deep Orange
-      default:
-        return Colors.grey.shade800;
-    }
-  }
-
-  Color getIconColor() {
-    return Colors.white.withOpacity(0.95); // Light icon
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final bgColor = getBackgroundColor();
-    final iconColor = getIconColor();
+    final List<Map<String, dynamic>> puzzles = [
+      {"id": 1, "title": "Level 1"},
+      {"id": 2, "title": "Level 2"},
+      {"id": 3, "title": "Level 3"},
+    ];
+
+    final List<Color> cardColors = [
+      Colors.pink.shade300,
+      Colors.teal.shade300,
+      Colors.orange.shade300,
+    ];
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: bgColor,
-        elevation: 0,
-        iconTheme: IconThemeData(color: iconColor),
-        title: Text(
-          widget.title,
-          style: TextStyle(
-            color: iconColor,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: Image.asset(
-              'assets/images/codebud_logo.png',
-              height: 40,
-            ),
-          )
-        ],
+        title: Text(title),
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: puzzles.isEmpty
-                  ? const Center(child: Text("No puzzles found."))
-                  : ListView.separated(
-                      itemCount: puzzles.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 16),
-                      itemBuilder: (context, index) {
-                        final puzzle = puzzles[index];
-                        return PuzzleButton(
-                          label: puzzle['title'] ?? 'Puzzle ${index + 1}',
-                          onPressed: () {
-                            Navigator.pushNamed(
-                              context,
-                              '/puzzle',
-                              arguments: puzzle['id'],
-                            );
-                          },
-                        );
-                      },
+      backgroundColor: Colors.white,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: GridView.builder(
+          itemCount: puzzles.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 0.85,
+          ),
+          itemBuilder: (context, index) {
+            final puzzle = puzzles[index];
+            final level = index + 1;
+
+            return GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  '/puzzle',
+                  arguments: puzzle['id'],
+                );
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.shade200,
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
                     ),
-            ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    // Top half - colored section
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: cardColors[index % cardColors.length],
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(12),
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '$level',
+                          style: const TextStyle(
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Bottom half - level and stars
+                    Expanded(
+                      flex: 1,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8.0,
+                          horizontal: 12,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Level $level',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 18,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: List.generate(
+                                3,
+                                (starIndex) => Icon(
+                                  Icons.star,
+                                  size: 24,
+                                  color: starIndex < 1 + (level % 3)
+                                      ? Colors.amber
+                                      : Colors.grey.shade300,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }
