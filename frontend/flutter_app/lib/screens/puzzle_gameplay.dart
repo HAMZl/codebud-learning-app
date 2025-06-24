@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import '../widgets/puzzle_grid.dart'; // ✅ Reuse Point + PuzzleGrid
+import '../widgets/puzzle_grid.dart';
 
-// -------- Puzzle Data Model (Minimal) --------
 class Puzzle {
   final String id;
   final String title;
@@ -34,7 +33,6 @@ class Puzzle {
   );
 }
 
-// -------- Puzzle Screen Widget --------
 class PuzzleScreen extends StatefulWidget {
   const PuzzleScreen({super.key});
 
@@ -48,6 +46,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   Puzzle? currentPuzzle;
   bool isLoading = true;
   List<String> commandSequence = [];
+  int? selectedIndex;
   final GlobalKey<PuzzleGridState> gridKey = GlobalKey<PuzzleGridState>();
 
   @override
@@ -117,11 +116,29 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     }
   }
 
+  void resetSequence() {
+    setState(() {
+      commandSequence.clear();
+      selectedIndex = null;
+    });
+  }
+
+  void deleteSelected() {
+    if (selectedIndex != null &&
+        selectedIndex! >= 0 &&
+        selectedIndex! < commandSequence.length) {
+      setState(() {
+        commandSequence.removeAt(selectedIndex!);
+        selectedIndex = null;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('$puzzleTitle'),
+        title: Text(puzzleTitle),
         backgroundColor: Colors.deepPurple,
       ),
       body: isLoading
@@ -146,62 +163,105 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                   ),
                   const SizedBox(height: 10),
                   Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
+                    spacing: 10,
+                    runSpacing: 10,
                     alignment: WrapAlignment.center,
                     children: _buildDraggableBlocks(),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 10),
                   const Text(
                     "Command Sequence:",
                     style: TextStyle(fontSize: 18),
                   ),
-                  Container(
-                    height: 100,
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
+                  SizedBox(
+                    height: 80,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.blue, width: 2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: DragTarget<String>(
+                        onAccept: (data) {
+                          setState(() {
+                            commandSequence.add(data);
+                          });
+                        },
+                        builder: (context, candidateData, rejectedData) {
+                          return ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: commandSequence.length,
+                            itemBuilder: (context, index) {
+                              final move = commandSequence[index];
+                              final emoji = switch (move) {
+                                'Up' => '🔼',
+                                'Down' => '🔽',
+                                'Left' => '◀️',
+                                'Right' => '▶️',
+                                _ => '❓',
+                              };
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    selectedIndex = index;
+                                  });
+                                },
+                                child: CommandBlock(
+                                  label: emoji,
+                                  isSelected: selectedIndex == index,
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
                     ),
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.blue, width: 2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: DragTarget<String>(
-                      onAccept: (data) {
-                        setState(() {
-                          commandSequence.add(data);
-                        });
-                      },
-                      builder: (context, candidateData, rejectedData) {
-                        return ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: commandSequence.length,
-                          itemBuilder: (context, index) {
-                            final move = commandSequence[index];
-                            final emoji = switch (move) {
-                              'Up' => '🔼',
-                              'Down' => '🔽',
-                              'Left' => '◀️',
-                              'Right' => '▶️',
-                              _ => '❓',
-                            };
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                              ),
-                              child: CommandBlock(label: emoji),
-                            );
-                          },
-                        );
-                      },
-                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        onPressed: commandSequence.isEmpty
+                            ? null
+                            : playCommands,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: commandSequence.isEmpty
+                              ? Colors.grey
+                              : Colors.orange,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text("Play"),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: commandSequence.isEmpty
+                            ? null
+                            : resetSequence,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text("Reset"),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: selectedIndex == null
+                            ? null
+                            : deleteSelected,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueGrey,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text("Delete"),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: playCommands,
-                    child: const Text("Play"),
-                  ),
                 ],
               ),
             ),
@@ -225,23 +285,27 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   }
 }
 
-// -------- Command Block Widget --------
 class CommandBlock extends StatelessWidget {
   final String label;
+  final bool isSelected;
 
-  const CommandBlock({super.key, required this.label});
+  const CommandBlock({super.key, required this.label, this.isSelected = false});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 60,
-      height: 60,
+      width: 45,
+      height: 45,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
         color: Colors.orangeAccent,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.black),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: isSelected ? Colors.blue : Colors.black,
+          width: isSelected ? 3 : 1,
+        ),
       ),
-      child: Center(child: Text(label, style: const TextStyle(fontSize: 26))),
+      child: Center(child: Text(label, style: const TextStyle(fontSize: 25))),
     );
   }
 }

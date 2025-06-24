@@ -53,10 +53,16 @@ class LaunchPage extends StatelessWidget {
                 // Sign Up Button
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFA726),
-                      foregroundColor: Colors.white,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Colors.white, // White background
+                      foregroundColor: const Color(
+                        0xFFFFA726,
+                      ), // Orange text and icon
+                      side: const BorderSide(
+                        color: Color(0xFFFFA726), // Orange border
+                        width: 2.0,
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       textStyle: const TextStyle(
                         fontSize: 20,
