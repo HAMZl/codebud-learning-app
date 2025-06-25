@@ -7,59 +7,67 @@ class SuccessPopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      contentPadding: const EdgeInsets.all(24),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'Level $level',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-          ),
-          const SizedBox(height: 16),
-
-          // ⭐️ Star Row
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.star, color: Colors.blue, size: 32),
-              Icon(Icons.star, color: Colors.blue, size: 32),
-              Icon(Icons.star, color: Colors.blue, size: 32),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          const Text(
-            'GREAT JOB!',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
-              color: Colors.black,
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Buttons
-          Row(
+    return Dialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(0), // Square corners
+        side: const BorderSide(color: Colors.black, width: 2),
+      ),
+      child: SizedBox(
+        width: 260,
+        height: 260, // Make it a square
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _popupButton(icon: Icons.home, onTap: () {
-                Navigator.pop(context);
-                // Add logic to go to home if needed
-              }),
-              _popupButton(icon: Icons.refresh, onTap: () {
-                Navigator.pop(context);
-                // Add logic to restart level
-              }),
-              _popupButton(icon: Icons.arrow_forward, onTap: () {
-                Navigator.pop(context);
-                // Add logic to go to next level
-              }),
+              Text(
+                'Level $level',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+
+              // ⭐️ Star Row
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.star, color: Colors.amber, size: 36),
+                  SizedBox(width: 8),
+                  Icon(Icons.star, color: Colors.amber, size: 36),
+                  SizedBox(width: 8),
+                  Icon(Icons.star, color: Colors.amber, size: 36),
+                ],
+              ),
+
+              const Text(
+                'GREAT JOB!',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black,
+                ),
+              ),
+
+              // Buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _popupButton(icon: Icons.home, onTap: () {
+                    Navigator.pop(context);
+                  }),
+                  _popupButton(icon: Icons.refresh, onTap: () {
+                    Navigator.pop(context);
+                  }),
+                  _popupButton(icon: Icons.arrow_forward, onTap: () {
+                    Navigator.pop(context);
+                  }),
+                ],
+              ),
             ],
-          )
-        ],
+          ),
+        ),
       ),
     );
   }
@@ -70,10 +78,10 @@ class SuccessPopup extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFF6C63FF),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
         ),
         padding: const EdgeInsets.all(12),
-        child: Icon(icon, color: Colors.white, size: 28),
+        child: Icon(icon, color: Colors.white, size: 24),
       ),
     );
   }
