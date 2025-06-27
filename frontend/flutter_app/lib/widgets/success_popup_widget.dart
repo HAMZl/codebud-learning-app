@@ -8,65 +8,62 @@ class SuccessPopup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(0), // Square corners
-        side: const BorderSide(color: Colors.black, width: 2),
+        borderRadius: BorderRadius.circular(5), // square edges
+        side: const BorderSide(color: Colors.black, width: 4),
       ),
-      child: SizedBox(
-        width: 260,
-        height: 260, // Make it a square
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Text(
-                'Level $level',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+      backgroundColor: Colors.white,
+      child: Container(
+        width: 300,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Level $level',
+              style: const TextStyle(
+                fontFamily: 'serif',
+                fontWeight: FontWeight.w700,
+                fontSize: 30,
+                color: Colors.black,
               ),
+            ),
+            const SizedBox(height: 20),
 
-              // ⭐️ Star Row
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.star, color: Colors.amber, size: 36),
-                  SizedBox(width: 8),
-                  Icon(Icons.star, color: Colors.amber, size: 36),
-                  SizedBox(width: 8),
-                  Icon(Icons.star, color: Colors.amber, size: 36),
-                ],
-              ),
+            // Star Row
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.star, color: Colors.amber, size: 60),
+                SizedBox(width: 8),
+                Icon(Icons.star, color: Colors.amber, size: 60),
+                SizedBox(width: 8),
+                Icon(Icons.star, color: Colors.amber, size: 60),
+              ],
+            ),
+            const SizedBox(height: 24),
 
-              const Text(
-                'GREAT JOB!',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.black,
-                ),
+            const Text(
+              'GREAT JOB!',
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.w900,
+                color: Colors.black,
               ),
+            ),
+            const SizedBox(height: 32),
 
-              // Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _popupButton(icon: Icons.home, onTap: () {
-                    Navigator.pop(context);
-                  }),
-                  _popupButton(icon: Icons.refresh, onTap: () {
-                    Navigator.pop(context);
-                  }),
-                  _popupButton(icon: Icons.arrow_forward, onTap: () {
-                    Navigator.pop(context);
-                  }),
-                ],
-              ),
-            ],
-          ),
+            // Buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _popupButton(icon: Icons.home, onTap: () => Navigator.pop(context)),
+                _popupButton(icon: Icons.refresh, onTap: () => Navigator.pop(context)),
+                _popupButton(icon: Icons.arrow_forward, onTap: () => Navigator.pop(context)),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -76,12 +73,12 @@ class SuccessPopup extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: const Color(0xFF6C63FF),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
         ),
-        padding: const EdgeInsets.all(12),
-        child: Icon(icon, color: Colors.white, size: 24),
+        child: Icon(icon, color: Colors.white, size: 30),
       ),
     );
   }
