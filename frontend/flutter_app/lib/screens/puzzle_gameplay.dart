@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 
 import '../widgets/puzzle_grid.dart';
@@ -41,13 +42,14 @@ class PuzzleScreen extends StatefulWidget {
 }
 
 class _PuzzleScreenState extends State<PuzzleScreen> {
-  late final String puzzleId;
-  late final String puzzleTitle;
+  late String puzzleId;
+  late String puzzleTitle;
   Puzzle? currentPuzzle;
   bool isLoading = true;
   List<String> commandSequence = [];
   int? selectedIndex;
   final GlobalKey<PuzzleGridState> gridKey = GlobalKey<PuzzleGridState>();
+  final storage = FlutterSecureStorage();
 
   @override
   void didChangeDependencies() {
@@ -115,8 +117,37 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       }
     }
 
-    // ✅ Show success popup
     if (pos == currentPuzzle!.goal) {
+      // 🔐 Save puzzle progress via API
+      final token = await storage.read(key: 'jwt_token');
+      if (token != null) {
+        try {
+          final response = await http.post(
+            Uri.parse('http://127.0.0.1:5000/api/progress'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: jsonEncode({
+              'puzzle_id': currentPuzzle!.id,
+              'status': 'completed',
+              'stars': 3,
+              'updated_at': DateTime.now().toIso8601String(),
+            }),
+          );
+
+          if (response.statusCode != 200) {
+            print('❌ Failed to save progress: ${response.body}');
+          } else {
+            print('✅ Progress saved successfully.');
+          }
+        } catch (e) {
+          print('❌ Error saving progress: $e');
+        }
+      } else {
+        print('❗ JWT token not found.');
+      }
+
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
