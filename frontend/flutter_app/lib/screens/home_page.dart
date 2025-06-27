@@ -6,7 +6,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Match clean white background
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -43,7 +43,6 @@ class HomePage extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // Greeting Text
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
@@ -59,13 +58,9 @@ class HomePage extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // Puzzle Category Grid
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: GridView.count(
                   crossAxisCount: 2,
                   crossAxisSpacing: 12,
@@ -76,21 +71,24 @@ class HomePage extends StatelessWidget {
                       context,
                       title: 'Sequencing',
                       icon: Icons.timeline,
-                      bgColor: Colors.blue[300]!,
+                      bgColor: Colors.blue.shade200,
+                      iconColor: Colors.blue.shade800,
                       onTapRoute: '/sequences',
                     ),
                     _buildCard(
                       context,
                       title: 'Loops',
                       icon: Icons.repeat,
-                      bgColor: Colors.green[300]!,
+                      bgColor: Colors.green.shade400,
+                      iconColor: Colors.green.shade800,
                       onTapRoute: '/loops',
                     ),
                     _buildCard(
                       context,
                       title: 'Conditionals',
                       icon: Icons.device_unknown,
-                      bgColor: Colors.yellow[300]!,
+                      bgColor: Colors.orange.shade200,
+                      iconColor: Colors.orange.shade800,
                       onTapRoute: '/conditionals',
                     ),
                   ],
@@ -108,6 +106,7 @@ class HomePage extends StatelessWidget {
     required String title,
     required IconData icon,
     required Color bgColor,
+    required Color iconColor,
     required String onTapRoute,
   }) {
     return GestureDetector(
@@ -124,7 +123,7 @@ class HomePage extends StatelessWidget {
             CircleAvatar(
               backgroundColor: bgColor,
               radius: 28,
-              child: Icon(icon, size: 28, color: Colors.deepPurple),
+              child: Icon(icon, size: 28, color: iconColor),
             ),
             const SizedBox(height: 12),
             Text(
