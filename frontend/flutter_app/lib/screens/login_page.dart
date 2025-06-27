@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,6 +12,8 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final storage = FlutterSecureStorage();
+
   String message = '';
   bool isLoading = false;
 
@@ -51,6 +54,11 @@ class _LoginPageState extends State<LoginPage> {
       setState(() => isLoading = false);
 
       if (response.statusCode == 200 && data['success'] == true) {
+        final token = data['token'];
+
+        // 🔒 Save JWT token securely
+        await storage.write(key: 'jwt_token', value: token);
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(data['message'] ?? 'Login successful!'),

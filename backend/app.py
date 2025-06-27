@@ -2,9 +2,16 @@ from flask import Flask, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from pymongo import MongoClient
 from flask_cors import CORS
+from flask_jwt_extended import (
+    JWTManager, create_access_token, jwt_required, get_jwt_identity
+)
 
 app = Flask(__name__)
 CORS(app)
+
+# Configure JWT
+app.config['JWT_SECRET_KEY'] = 'your-secret-key'  # Change this to a secure value in production
+jwt = JWTManager(app)
 
 # MongoDB connection
 client = MongoClient('mongodb://localhost:27017/')
@@ -39,7 +46,12 @@ def login():
         return jsonify({'success': False, 'message': 'No account with that username!'}), 401
 
     if check_password_hash(user['password'], password):
-        return jsonify({'success': True, 'message': f'Welcome, {user["child_name"]}!'}), 200
+        access_token = create_access_token(identity=username)
+        return jsonify({
+            'success': True,
+            'message': f'Welcome, {user["child_name"]}!',
+            'token': access_token
+        }), 200
     else:
         return jsonify({'success': False, 'message': 'Incorrect password!'}), 401
 
@@ -57,9 +69,25 @@ def get_puzzle(puzzle_id):
     if not puzzle:
         return jsonify({"error": "Puzzle not found"}), 404
 
-    # Remove MongoDB _id if not needed on frontend
-    puzzle['_id'] = str(puzzle['_id'])
+    puzzle['_id'] = str(puzzle['_id'])  # Optional cleanup
     return jsonify(puzzle)
+
+@app.route('/api/progress', methods=['POST'])
+@jwt_required()
+def save_progress():
+    username = get_jwt_identity()
+    data = request.get_json()
+
+    db.progress.update_one(
+        {'username': username, 'puzzle_id': data['puzzle_id']},
+        {'$set': {
+            'status': data['status'],
+            'stars': data['stars'],
+            'updated_at': data.get('updated_at')
+        }},
+        upsert=True
+    )
+    return jsonify({'success': True, 'message': 'Progress saved'}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)

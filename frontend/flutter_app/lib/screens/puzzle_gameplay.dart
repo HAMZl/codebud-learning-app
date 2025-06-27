@@ -22,15 +22,15 @@ class Puzzle {
   });
 
   factory Puzzle.fromJson(Map<String, dynamic> json) => Puzzle(
-        id: json['id'],
-        title: json['title'],
-        gridSize: json['gridSize'],
-        start: Point.fromList(json['start']),
-        goal: Point.fromList(json['goal']),
-        obstacles: List<List<dynamic>>.from(json['obstacles'])
-            .map((e) => Point.fromList(e))
-            .toList(),
-      );
+    id: json['id'],
+    title: json['title'],
+    gridSize: json['gridSize'],
+    start: Point.fromList(json['start']),
+    goal: Point.fromList(json['goal']),
+    obstacles: List<List<dynamic>>.from(
+      json['obstacles'],
+    ).map((e) => Point.fromList(e)).toList(),
+  );
 }
 
 class PuzzleScreen extends StatefulWidget {
@@ -161,122 +161,127 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : currentPuzzle == null
-              ? const Center(child: Text("Failed to load puzzle."))
-              : SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 20),
-                      PuzzleGrid(
-                        key: gridKey,
-                        gridSize: currentPuzzle!.gridSize,
-                        start: currentPuzzle!.start,
-                        goal: currentPuzzle!.goal,
-                        obstacles: currentPuzzle!.obstacles,
+          ? const Center(child: Text("Failed to load puzzle."))
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  PuzzleGrid(
+                    key: gridKey,
+                    gridSize: currentPuzzle!.gridSize,
+                    start: currentPuzzle!.start,
+                    goal: currentPuzzle!.goal,
+                    obstacles: currentPuzzle!.obstacles,
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Available Moves:",
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    alignment: WrapAlignment.center,
+                    children: _buildDraggableBlocks(),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Command Sequence:",
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  SizedBox(
+                    height: 80,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
                       ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        "Available Moves:",
-                        style: TextStyle(fontSize: 18),
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.blue, width: 2),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
-                        alignment: WrapAlignment.center,
-                        children: _buildDraggableBlocks(),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Command Sequence:",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                      SizedBox(
-                        height: 80,
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.blue, width: 2),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: DragTarget<String>(
-                            onAccept: (data) {
-                              setState(() {
-                                commandSequence.add(data);
-                              });
-                            },
-                            builder: (context, candidateData, rejectedData) {
-                              return ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: commandSequence.length,
-                                itemBuilder: (context, index) {
-                                  final move = commandSequence[index];
-                                  final emoji = switch (move) {
-                                    'Up' => '🔼',
-                                    'Down' => '🔽',
-                                    'Left' => '◀️',
-                                    'Right' => '▶️',
-                                    _ => '❓',
-                                  };
-                                  return GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        selectedIndex = index;
-                                      });
-                                    },
-                                    child: CommandBlock(
-                                      label: emoji,
-                                      isSelected: selectedIndex == index,
-                                    ),
-                                  );
+                      child: DragTarget<String>(
+                        onAccept: (data) {
+                          setState(() {
+                            commandSequence.add(data);
+                          });
+                        },
+                        builder: (context, candidateData, rejectedData) {
+                          return ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: commandSequence.length,
+                            itemBuilder: (context, index) {
+                              final move = commandSequence[index];
+                              final emoji = switch (move) {
+                                'Up' => '🔼',
+                                'Down' => '🔽',
+                                'Left' => '◀️',
+                                'Right' => '▶️',
+                                _ => '❓',
+                              };
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    selectedIndex = index;
+                                  });
                                 },
+                                child: CommandBlock(
+                                  label: emoji,
+                                  isSelected: selectedIndex == index,
+                                ),
                               );
                             },
-                          ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        onPressed: commandSequence.isEmpty
+                            ? null
+                            : playCommands,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: commandSequence.isEmpty
+                              ? Colors.grey
+                              : Colors.orange,
+                          foregroundColor: Colors.white,
                         ),
+                        child: const Text("Play"),
                       ),
-                      const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ElevatedButton(
-                            onPressed:
-                                commandSequence.isEmpty ? null : playCommands,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: commandSequence.isEmpty
-                                  ? Colors.grey
-                                  : Colors.orange,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: const Text("Play"),
-                          ),
-                          const SizedBox(width: 12),
-                          ElevatedButton(
-                            onPressed:
-                                commandSequence.isEmpty ? null : resetSequence,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: const Text("Reset"),
-                          ),
-                          const SizedBox(width: 12),
-                          ElevatedButton(
-                            onPressed:
-                                selectedIndex == null ? null : deleteSelected,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blueGrey,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: const Text("Delete"),
-                          ),
-                        ],
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: commandSequence.isEmpty
+                            ? null
+                            : resetSequence,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text("Reset"),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: selectedIndex == null
+                            ? null
+                            : deleteSelected,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueGrey,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text("Delete"),
+                      ),
                     ],
                   ),
-                ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
     );
   }
 
@@ -301,11 +306,7 @@ class CommandBlock extends StatelessWidget {
   final String label;
   final bool isSelected;
 
-  const CommandBlock({
-    super.key,
-    required this.label,
-    this.isSelected = false,
-  });
+  const CommandBlock({super.key, required this.label, this.isSelected = false});
 
   @override
   Widget build(BuildContext context) {
@@ -321,12 +322,7 @@ class CommandBlock extends StatelessWidget {
           width: isSelected ? 3 : 1,
         ),
       ),
-      child: Center(
-        child: Text(
-          label,
-          style: const TextStyle(fontSize: 25),
-        ),
-      ),
+      child: Center(child: Text(label, style: const TextStyle(fontSize: 25))),
     );
   }
 }
