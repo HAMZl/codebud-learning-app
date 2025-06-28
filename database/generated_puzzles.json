@@ -1,0 +1,1172 @@
+[
+  {
+    "id": "seq1",
+    "category": "sequence",
+    "title": "Sequence Puzzle 1",
+    "gridSize": 5,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      4,
+      4
+    ],
+    "obstacles": [
+      [
+        3,
+        0
+      ]
+    ],
+    "starMoves": [
+      6,
+      8,
+      10
+    ]
+  },
+  {
+    "id": "seq2",
+    "category": "sequence",
+    "title": "Sequence Puzzle 2",
+    "gridSize": 5,
+    "start": [
+      0,
+      1
+    ],
+    "goal": [
+      3,
+      4
+    ],
+    "obstacles": [
+      [
+        2,
+        4
+      ],
+      [
+        1,
+        1
+      ]
+    ],
+    "starMoves": [
+      7,
+      9,
+      11
+    ]
+  },
+  {
+    "id": "seq3",
+    "category": "sequence",
+    "title": "Sequence Puzzle 3",
+    "gridSize": 5,
+    "start": [
+      1,
+      0
+    ],
+    "goal": [
+      4,
+      3
+    ],
+    "obstacles": [
+      [
+        3,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "starMoves": [
+      8,
+      10,
+      12
+    ]
+  },
+  {
+    "id": "seq4",
+    "category": "sequence",
+    "title": "Sequence Puzzle 4",
+    "gridSize": 5,
+    "start": [
+      1,
+      1
+    ],
+    "goal": [
+      3,
+      3
+    ],
+    "obstacles": [
+      [
+        1,
+        3
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "starMoves": [
+      9,
+      11,
+      13
+    ]
+  },
+  {
+    "id": "seq5",
+    "category": "sequence",
+    "title": "Sequence Puzzle 5",
+    "gridSize": 5,
+    "start": [
+      2,
+      0
+    ],
+    "goal": [
+      4,
+      2
+    ],
+    "obstacles": [
+      [
+        2,
+        2
+      ],
+      [
+        4,
+        4
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        3,
+        1
+      ]
+    ],
+    "starMoves": [
+      10,
+      12,
+      14
+    ]
+  },
+  {
+    "id": "seq6",
+    "category": "sequence",
+    "title": "Sequence Puzzle 6",
+    "gridSize": 5,
+    "start": [
+      0,
+      2
+    ],
+    "goal": [
+      2,
+      4
+    ],
+    "obstacles": [
+      [
+        0,
+        1
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        1,
+        1
+      ]
+    ],
+    "starMoves": [
+      11,
+      13,
+      15
+    ]
+  },
+  {
+    "id": "seq7",
+    "category": "sequence",
+    "title": "Sequence Puzzle 7",
+    "gridSize": 5,
+    "start": [
+      3,
+      0
+    ],
+    "goal": [
+      4,
+      1
+    ],
+    "obstacles": [
+      [
+        4,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        4,
+        4
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        2,
+        2
+      ]
+    ],
+    "starMoves": [
+      12,
+      14,
+      16
+    ]
+  },
+  {
+    "id": "seq8",
+    "category": "sequence",
+    "title": "Sequence Puzzle 8",
+    "gridSize": 5,
+    "start": [
+      1,
+      2
+    ],
+    "goal": [
+      3,
+      2
+    ],
+    "obstacles": [
+      [
+        3,
+        0
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        3,
+        3
+      ],
+      [
+        4,
+        2
+      ]
+    ],
+    "starMoves": [
+      13,
+      15,
+      17
+    ]
+  },
+  {
+    "id": "seq9",
+    "category": "sequence",
+    "title": "Sequence Puzzle 9",
+    "gridSize": 5,
+    "start": [
+      2,
+      2
+    ],
+    "goal": [
+      4,
+      0
+    ],
+    "obstacles": [
+      [
+        4,
+        1
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        4,
+        3
+      ],
+      [
+        3,
+        2
+      ]
+    ],
+    "starMoves": [
+      14,
+      16,
+      18
+    ]
+  },
+  {
+    "id": "seq10",
+    "category": "sequence",
+    "title": "Sequence Puzzle 10",
+    "gridSize": 5,
+    "start": [
+      0,
+      3
+    ],
+    "goal": [
+      4,
+      3
+    ],
+    "obstacles": [
+      [
+        4,
+        3
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        3,
+        3
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "starMoves": [
+      15,
+      17,
+      19
+    ]
+  },
+  {
+    "id": "loop1",
+    "category": "loop",
+    "title": "Loop Puzzle 1",
+    "gridSize": 5,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      4,
+      0
+    ],
+    "obstacles": [
+      [
+        1,
+        2
+      ]
+    ],
+    "starMoves": [
+      5,
+      7,
+      9
+    ]
+  },
+  {
+    "id": "loop2",
+    "category": "loop",
+    "title": "Loop Puzzle 2",
+    "gridSize": 5,
+    "start": [
+      0,
+      1
+    ],
+    "goal": [
+      4,
+      1
+    ],
+    "obstacles": [
+      [
+        1,
+        1
+      ],
+      [
+        4,
+        0
+      ]
+    ],
+    "starMoves": [
+      6,
+      8,
+      10
+    ]
+  },
+  {
+    "id": "loop3",
+    "category": "loop",
+    "title": "Loop Puzzle 3",
+    "gridSize": 5,
+    "start": [
+      1,
+      0
+    ],
+    "goal": [
+      3,
+      0
+    ],
+    "obstacles": [
+      [
+        4,
+        0
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        4,
+        3
+      ]
+    ],
+    "starMoves": [
+      7,
+      9,
+      11
+    ]
+  },
+  {
+    "id": "loop4",
+    "category": "loop",
+    "title": "Loop Puzzle 4",
+    "gridSize": 5,
+    "start": [
+      1,
+      1
+    ],
+    "goal": [
+      3,
+      1
+    ],
+    "obstacles": [
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        0
+      ]
+    ],
+    "starMoves": [
+      8,
+      10,
+      12
+    ]
+  },
+  {
+    "id": "loop5",
+    "category": "loop",
+    "title": "Loop Puzzle 5",
+    "gridSize": 5,
+    "start": [
+      0,
+      2
+    ],
+    "goal": [
+      4,
+      2
+    ],
+    "obstacles": [
+      [
+        4,
+        4
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        0
+      ]
+    ],
+    "starMoves": [
+      9,
+      11,
+      13
+    ]
+  },
+  {
+    "id": "loop6",
+    "category": "loop",
+    "title": "Loop Puzzle 6",
+    "gridSize": 5,
+    "start": [
+      2,
+      0
+    ],
+    "goal": [
+      2,
+      4
+    ],
+    "obstacles": [
+      [
+        3,
+        3
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        4,
+        2
+      ]
+    ],
+    "starMoves": [
+      10,
+      12,
+      14
+    ]
+  },
+  {
+    "id": "loop7",
+    "category": "loop",
+    "title": "Loop Puzzle 7",
+    "gridSize": 5,
+    "start": [
+      0,
+      3
+    ],
+    "goal": [
+      4,
+      3
+    ],
+    "obstacles": [
+      [
+        1,
+        4
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "starMoves": [
+      11,
+      13,
+      15
+    ]
+  },
+  {
+    "id": "loop8",
+    "category": "loop",
+    "title": "Loop Puzzle 8",
+    "gridSize": 5,
+    "start": [
+      3,
+      0
+    ],
+    "goal": [
+      3,
+      4
+    ],
+    "obstacles": [
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        4,
+        3
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "starMoves": [
+      12,
+      14,
+      16
+    ]
+  },
+  {
+    "id": "loop9",
+    "category": "loop",
+    "title": "Loop Puzzle 9",
+    "gridSize": 5,
+    "start": [
+      1,
+      2
+    ],
+    "goal": [
+      4,
+      4
+    ],
+    "obstacles": [
+      [
+        2,
+        2
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ]
+    ],
+    "starMoves": [
+      13,
+      15,
+      17
+    ]
+  },
+  {
+    "id": "loop10",
+    "category": "loop",
+    "title": "Loop Puzzle 10",
+    "gridSize": 5,
+    "start": [
+      2,
+      1
+    ],
+    "goal": [
+      2,
+      3
+    ],
+    "obstacles": [
+      [
+        1,
+        0
+      ],
+      [
+        4,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        3,
+        1
+      ]
+    ],
+    "starMoves": [
+      14,
+      16,
+      18
+    ]
+  },
+  {
+    "id": "cond1",
+    "category": "conditional",
+    "title": "Conditional Puzzle 1",
+    "gridSize": 5,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      0,
+      4
+    ],
+    "obstacles": [
+      [
+        1,
+        4
+      ]
+    ],
+    "starMoves": [
+      7,
+      9,
+      11
+    ]
+  },
+  {
+    "id": "cond2",
+    "category": "conditional",
+    "title": "Conditional Puzzle 2",
+    "gridSize": 5,
+    "start": [
+      1,
+      0
+    ],
+    "goal": [
+      1,
+      4
+    ],
+    "obstacles": [
+      [
+        0,
+        4
+      ],
+      [
+        3,
+        2
+      ]
+    ],
+    "starMoves": [
+      8,
+      10,
+      12
+    ]
+  },
+  {
+    "id": "cond3",
+    "category": "conditional",
+    "title": "Conditional Puzzle 3",
+    "gridSize": 5,
+    "start": [
+      2,
+      0
+    ],
+    "goal": [
+      2,
+      4
+    ],
+    "obstacles": [
+      [
+        4,
+        4
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        2,
+        4
+      ]
+    ],
+    "starMoves": [
+      9,
+      11,
+      13
+    ]
+  },
+  {
+    "id": "cond4",
+    "category": "conditional",
+    "title": "Conditional Puzzle 4",
+    "gridSize": 5,
+    "start": [
+      0,
+      1
+    ],
+    "goal": [
+      0,
+      3
+    ],
+    "obstacles": [
+      [
+        1,
+        4
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        4,
+        4
+      ]
+    ],
+    "starMoves": [
+      10,
+      12,
+      14
+    ]
+  },
+  {
+    "id": "cond5",
+    "category": "conditional",
+    "title": "Conditional Puzzle 5",
+    "gridSize": 5,
+    "start": [
+      1,
+      1
+    ],
+    "goal": [
+      1,
+      3
+    ],
+    "obstacles": [
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        3,
+        3
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        4,
+        3
+      ]
+    ],
+    "starMoves": [
+      11,
+      13,
+      15
+    ]
+  },
+  {
+    "id": "cond6",
+    "category": "conditional",
+    "title": "Conditional Puzzle 6",
+    "gridSize": 5,
+    "start": [
+      2,
+      1
+    ],
+    "goal": [
+      2,
+      3
+    ],
+    "obstacles": [
+      [
+        4,
+        0
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        4,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        1
+      ]
+    ],
+    "starMoves": [
+      12,
+      14,
+      16
+    ]
+  },
+  {
+    "id": "cond7",
+    "category": "conditional",
+    "title": "Conditional Puzzle 7",
+    "gridSize": 5,
+    "start": [
+      0,
+      2
+    ],
+    "goal": [
+      4,
+      0
+    ],
+    "obstacles": [
+      [
+        4,
+        1
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        1,
+        3
+      ]
+    ],
+    "starMoves": [
+      13,
+      15,
+      17
+    ]
+  },
+  {
+    "id": "cond8",
+    "category": "conditional",
+    "title": "Conditional Puzzle 8",
+    "gridSize": 5,
+    "start": [
+      1,
+      2
+    ],
+    "goal": [
+      4,
+      1
+    ],
+    "obstacles": [
+      [
+        1,
+        3
+      ],
+      [
+        4,
+        3
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        2
+      ]
+    ],
+    "starMoves": [
+      14,
+      16,
+      18
+    ]
+  },
+  {
+    "id": "cond9",
+    "category": "conditional",
+    "title": "Conditional Puzzle 9",
+    "gridSize": 5,
+    "start": [
+      2,
+      2
+    ],
+    "goal": [
+      4,
+      2
+    ],
+    "obstacles": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        4
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        4
+      ]
+    ],
+    "starMoves": [
+      15,
+      17,
+      19
+    ]
+  },
+  {
+    "id": "cond10",
+    "category": "conditional",
+    "title": "Conditional Puzzle 10",
+    "gridSize": 5,
+    "start": [
+      0,
+      3
+    ],
+    "goal": [
+      4,
+      3
+    ],
+    "obstacles": [
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        1
+      ]
+    ],
+    "starMoves": [
+      16,
+      18,
+      20
+    ]
+  }
+]
