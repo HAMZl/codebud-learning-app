@@ -2,8 +2,19 @@ import 'package:flutter/material.dart';
 
 class SuccessPopup extends StatelessWidget {
   final String level;
+  final int earnedStars;
+  final VoidCallback onRetry;
+  final VoidCallback onNext;
+  final VoidCallback onCategorySelect;
 
-  const SuccessPopup({super.key, required this.level});
+  const SuccessPopup({
+    super.key,
+    required this.level,
+    required this.earnedStars,
+    required this.onRetry,
+    required this.onNext,
+    required this.onCategorySelect,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +32,7 @@ class SuccessPopup extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Level $level',
+              level,
               style: const TextStyle(
                 fontFamily: 'serif',
                 fontWeight: FontWeight.w700,
@@ -31,19 +42,25 @@ class SuccessPopup extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Star Row
-            const Row(
+            // Star Row (dynamic)
+            Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.star, color: Colors.amber, size: 60),
-                SizedBox(width: 8),
-                Icon(Icons.star, color: Colors.amber, size: 60),
-                SizedBox(width: 8),
-                Icon(Icons.star, color: Colors.amber, size: 60),
-              ],
+              children: List.generate(
+                3,
+                (i) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Icon(
+                    Icons.star,
+                    color: i < earnedStars
+                        ? Colors.amber
+                        : Colors.grey.shade300,
+                    size: 60,
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(height: 24),
 
+            const SizedBox(height: 24),
             const Text(
               'GREAT JOB!',
               style: TextStyle(
@@ -55,12 +72,18 @@ class SuccessPopup extends StatelessWidget {
             const SizedBox(height: 32),
 
             // Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              alignment: WrapAlignment.center,
               children: [
-                _popupButton(icon: Icons.home, onTap: () => Navigator.pop(context)),
-                _popupButton(icon: Icons.refresh, onTap: () => Navigator.pop(context)),
-                _popupButton(icon: Icons.arrow_forward, onTap: () => Navigator.pop(context)),
+                _popupButton(
+                  icon: Icons.home,
+                  onTap: () => Navigator.pushReplacementNamed(context, '/home'),
+                ),
+                _popupButton(icon: Icons.refresh, onTap: onRetry),
+                _popupButton(icon: Icons.arrow_forward, onTap: onNext),
+                _popupButton(icon: Icons.dashboard, onTap: onCategorySelect),
               ],
             ),
           ],

@@ -54,10 +54,25 @@ def login():
         return jsonify({'success': False, 'message': 'Incorrect password!'}), 401
 
 @app.route('/api/puzzles/<category>', methods=['GET'])
+@jwt_required()
 def get_puzzles_by_category(category):
+    username = get_jwt_identity()  # Extract username or user ID from JWT
+
+    # Fetch all puzzles in the category
     puzzles = list(db.puzzles.find({"category": category}))
+    puzzle_ids = [p['id'] for p in puzzles]
+
+    # Fetch user progress for those puzzles
+    progress = list(db.progress.find({"username": username, "puzzle_id": {"$in": puzzle_ids}}))
+    progress_dict = {p['puzzle_id']: p for p in progress}
+
+    # Combine progress data with puzzles
     for p in puzzles:
-        p['_id'] = str(p['_id'])  # Convert ObjectId to string
+        pid = p['id']
+        p['_id'] = str(p['_id'])  # Convert ObjectId for JSON
+        stars = progress_dict.get(pid, {}).get('stars', 0)
+        p['stars'] = ['yellow' if i < stars else 'gray' for i in range(3)]
+
     return jsonify({'puzzles': puzzles}), 200
 
 @app.route('/api/puzzle/<puzzle_id>', methods=['GET'])

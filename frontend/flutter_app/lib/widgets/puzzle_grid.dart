@@ -9,7 +9,7 @@ class Point {
   factory Point.fromList(List<dynamic> list) =>
       Point(list[0] as int, list[1] as int);
 
-  List<int> toList() => [row, col]; // Optional: for serialization
+  List<int> toList() => [row, col];
 
   @override
   bool operator ==(Object other) =>
@@ -25,13 +25,16 @@ class PuzzleGrid extends StatefulWidget {
   final Point start;
   final Point goal;
   final List<Point> obstacles;
-
+  final List<int> starMoves; // e.g., [6, 8, 10]
+  final String category; // e.g., 'sequence', 'loop', 'conditional'
   const PuzzleGrid({
     super.key,
     required this.gridSize,
     required this.start,
     required this.goal,
     required this.obstacles,
+    required this.starMoves,
+    required this.category,
   });
 
   @override
@@ -40,6 +43,7 @@ class PuzzleGrid extends StatefulWidget {
 
 class PuzzleGridState extends State<PuzzleGrid> {
   late Point robotPosition;
+  int moveCount = 0;
 
   @override
   void initState() {
@@ -48,35 +52,68 @@ class PuzzleGridState extends State<PuzzleGrid> {
   }
 
   void updateRobot(Point newPosition) {
-    setState(() => robotPosition = newPosition);
+    setState(() {
+      robotPosition = newPosition;
+      moveCount++;
+    });
+  }
+
+  int calculateStars() {
+    for (int i = 0; i < widget.starMoves.length; i++) {
+      if (moveCount <= widget.starMoves[i]) return 3 - i;
+    }
+    return 0;
+  }
+
+  List<Widget> buildStarRow() {
+    int stars = calculateStars();
+    return List.generate(
+      3,
+      (i) => Icon(
+        Icons.star,
+        color: i < stars ? Colors.amber : Colors.grey.shade300,
+        size: 28,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: widget.gridSize * 40,
-      height: widget.gridSize * 40,
-      child: GridView.builder(
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: widget.gridSize * widget.gridSize,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: widget.gridSize,
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: buildStarRow(),
         ),
-        itemBuilder: (context, index) {
-          final row = index ~/ widget.gridSize;
-          final col = index % widget.gridSize;
-          final icon = _getIcon(row, col);
-          return Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black26),
-              color: Colors.white,
+        const SizedBox(height: 8),
+        SizedBox(
+          width: widget.gridSize * 40,
+          height: widget.gridSize * 40,
+          child: GridView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: widget.gridSize * widget.gridSize,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: widget.gridSize,
             ),
-            child: Center(
-              child: Text(icon, style: const TextStyle(fontSize: 24)),
-            ),
-          );
-        },
-      ),
+            itemBuilder: (context, index) {
+              final row = index ~/ widget.gridSize;
+              final col = index % widget.gridSize;
+              final icon = _getIcon(row, col);
+              return Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black26),
+                  color: Colors.white,
+                ),
+                child: Center(
+                  child: Text(icon, style: const TextStyle(fontSize: 24)),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text('Moves: $moveCount'),
+      ],
     );
   }
 

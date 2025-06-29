@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 
 import '../widgets/puzzle_grid.dart';
+import '../widgets/success_popup_widget.dart';
 
 class Puzzle {
   final String id;
@@ -12,6 +13,8 @@ class Puzzle {
   final Point start;
   final Point goal;
   final List<Point> obstacles;
+  final List<int> starMoves;
+  final String category;
 
   Puzzle({
     required this.id,
@@ -20,6 +23,8 @@ class Puzzle {
     required this.start,
     required this.goal,
     required this.obstacles,
+    required this.starMoves,
+    required this.category,
   });
 
   factory Puzzle.fromJson(Map<String, dynamic> json) => Puzzle(
@@ -31,6 +36,8 @@ class Puzzle {
     obstacles: List<List<dynamic>>.from(
       json['obstacles'],
     ).map((e) => Point.fromList(e)).toList(),
+    starMoves: List<int>.from(json['starMoves'] ?? [6, 8, 10]),
+    category: json['category'],
   );
 }
 
@@ -91,6 +98,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     if (currentPuzzle == null || gridKey.currentState == null) return;
 
     Point pos = currentPuzzle!.start;
+    int moveCounter = 0;
 
     for (String move in commandSequence) {
       await Future.delayed(const Duration(milliseconds: 500));
@@ -113,12 +121,20 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
       if (inBounds && !isBlocked) {
         pos = next;
+        moveCounter++;
         gridKey.currentState?.updateRobot(pos);
       }
     }
 
     if (pos == currentPuzzle!.goal) {
-      // 🔐 Save puzzle progress via API
+      int earnedStars = 0;
+      for (int i = 0; i < currentPuzzle!.starMoves.length; i++) {
+        if (moveCounter <= currentPuzzle!.starMoves[i]) {
+          earnedStars = 3 - i;
+          break;
+        }
+      }
+
       final token = await storage.read(key: 'jwt_token');
       if (token != null) {
         try {
@@ -130,8 +146,8 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
             },
             body: jsonEncode({
               'puzzle_id': currentPuzzle!.id,
+              'stars': earnedStars,
               'status': 'completed',
-              'stars': 3,
               'updated_at': DateTime.now().toIso8601String(),
             }),
           );
@@ -148,17 +164,66 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         print('❗ JWT token not found.');
       }
 
+      // Prepare next puzzle ID and title
+      String nextPuzzleId = currentPuzzle!.id;
+      String nextPuzzleTitle = puzzleTitle;
+      final match = RegExp(r'^([a-zA-Z]+)(\d+)$').firstMatch(currentPuzzle!.id);
+      if (match != null) {
+        String prefix = match.group(1)!;
+        int number = int.parse(match.group(2)!);
+        nextPuzzleId = '$prefix${number + 1}';
+        nextPuzzleTitle = 'Level ${number + 1}';
+      }
+
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("Success!"),
-          content: const Text("CodeBud reached the goal! 🎉"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("OK"),
-            ),
-          ],
+        builder: (context) => SuccessPopup(
+          level: puzzleTitle,
+          earnedStars: earnedStars,
+          onRetry: () {
+            Navigator.pushNamed(
+              context,
+              '/puzzle',
+              arguments: {
+                'id': puzzleId,
+                'title': puzzleTitle,
+                'category': currentPuzzle!.category,
+              },
+            );
+          },
+          onNext: () async {
+            Navigator.pop(context);
+
+            final uri = Uri.parse(
+              'http://127.0.0.1:5000/api/puzzle/$nextPuzzleId',
+            );
+            final response = await http.get(uri);
+
+            if (response.statusCode == 200) {
+              Navigator.pushReplacementNamed(
+                context,
+                '/puzzle',
+                arguments: {
+                  'id': nextPuzzleId,
+                  'title': nextPuzzleTitle,
+                  'category': currentPuzzle!.category,
+                },
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Next puzzle does not exist yet."),
+                ),
+              );
+            }
+          },
+          onCategorySelect: () {
+            Navigator.pop(context);
+            Navigator.pushReplacementNamed(
+              context,
+              '/${currentPuzzle!.category}s',
+            );
+          },
         ),
       );
     }
@@ -168,6 +233,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     setState(() {
       commandSequence.clear();
       selectedIndex = null;
+      gridKey.currentState?.updateRobot(currentPuzzle!.start);
     });
   }
 
@@ -186,8 +252,17 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(puzzleTitle),
         backgroundColor: Colors.deepPurple,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacementNamed(
+              context,
+              '/${currentPuzzle!.category}s',
+            );
+          },
+        ),
+        title: Text(puzzleTitle),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -203,6 +278,8 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                     start: currentPuzzle!.start,
                     goal: currentPuzzle!.goal,
                     obstacles: currentPuzzle!.obstacles,
+                    starMoves: currentPuzzle!.starMoves,
+                    category: currentPuzzle!.category,
                   ),
                   const SizedBox(height: 20),
                   const Text(

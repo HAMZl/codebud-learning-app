@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 
 class PuzzleSelectionPage extends StatefulWidget {
   final String title;
   final String category;
-
   const PuzzleSelectionPage({
     super.key,
     required this.title,
@@ -19,7 +19,7 @@ class PuzzleSelectionPage extends StatefulWidget {
 class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
   List<Map<String, dynamic>> puzzles = [];
   bool isLoading = true;
-
+  final storage = FlutterSecureStorage();
   final List<Color> cardColors = [
     Colors.pink.shade300,
     Colors.teal.shade300,
@@ -34,8 +34,13 @@ class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
 
   Future<void> fetchPuzzles() async {
     try {
+      final token = await storage.read(key: 'jwt_token');
+
+      if (token == null) throw Exception("JWT token not found");
+
       final response = await http.get(
         Uri.parse('http://127.0.0.1:5000/api/puzzles/${widget.category}'),
+        headers: {'Authorization': 'Bearer $token'},
       );
 
       if (response.statusCode == 200) {
@@ -45,7 +50,7 @@ class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
           isLoading = false;
         });
       } else {
-        throw Exception('Failed to load puzzles');
+        throw Exception('Failed to load puzzles: ${response.statusCode}');
       }
     } catch (e) {
       print('Error fetching puzzles: $e');
@@ -60,6 +65,12 @@ class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
         title: Text(widget.title),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, '/home');
+          },
+        ),
       ),
       backgroundColor: Colors.white,
       body: isLoading
@@ -155,7 +166,10 @@ class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
                                             (starIndex) => Icon(
                                               Icons.star,
                                               size: 24,
-                                              color: starIndex < 1 + (level % 3)
+                                              color:
+                                                  (puzzle['stars'] != null &&
+                                                      puzzle['stars'][starIndex] ==
+                                                          'yellow')
                                                   ? Colors.amber
                                                   : Colors.grey.shade300,
                                             ),
