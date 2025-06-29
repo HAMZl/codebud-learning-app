@@ -37,7 +37,7 @@ class SuccessPopup extends StatelessWidget {
               style: const TextStyle(
                 fontFamily: 'serif',
                 fontWeight: FontWeight.w700,
-                fontSize: 30,
+                fontSize: 25,
                 color: Colors.black,
               ),
             ),
@@ -85,7 +85,7 @@ class SuccessPopup extends StatelessWidget {
                 _popupButton(icon: Icons.refresh, onTap: onRetry),
                 if (showNextButton)
                   _popupButton(icon: Icons.arrow_forward, onTap: onNext),
-                _popupButton(icon: Icons.dashboard, onTap: onCategorySelect),
+                _popupButton(icon: Icons.list, onTap: onCategorySelect),
               ],
             ),
           ],
