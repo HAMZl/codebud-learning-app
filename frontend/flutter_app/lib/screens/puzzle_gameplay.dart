@@ -175,6 +175,14 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         nextPuzzleTitle = 'Level ${number + 1}';
       }
 
+      // Check if next puzzle exists
+      bool nextPuzzleExists = false;
+      final checkUri = Uri.parse(
+        'http://127.0.0.1:5000/api/puzzle/$nextPuzzleId',
+      );
+      final checkResponse = await http.get(checkUri);
+      nextPuzzleExists = checkResponse.statusCode == 200;
+
       showDialog(
         context: context,
         builder: (context) => SuccessPopup(
@@ -191,31 +199,17 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
               },
             );
           },
-          onNext: () async {
+          onNext: () {
             Navigator.pop(context);
-
-            final uri = Uri.parse(
-              'http://127.0.0.1:5000/api/puzzle/$nextPuzzleId',
+            Navigator.pushReplacementNamed(
+              context,
+              '/puzzle',
+              arguments: {
+                'id': nextPuzzleId,
+                'title': nextPuzzleTitle,
+                'category': currentPuzzle!.category,
+              },
             );
-            final response = await http.get(uri);
-
-            if (response.statusCode == 200) {
-              Navigator.pushReplacementNamed(
-                context,
-                '/puzzle',
-                arguments: {
-                  'id': nextPuzzleId,
-                  'title': nextPuzzleTitle,
-                  'category': currentPuzzle!.category,
-                },
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Next puzzle does not exist yet."),
-                ),
-              );
-            }
           },
           onCategorySelect: () {
             Navigator.pop(context);
@@ -224,6 +218,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
               '/${currentPuzzle!.category}s',
             );
           },
+          showNextButton: nextPuzzleExists, // 🔍
         ),
       );
     }

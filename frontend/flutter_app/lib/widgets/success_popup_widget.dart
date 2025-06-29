@@ -6,7 +6,7 @@ class SuccessPopup extends StatelessWidget {
   final VoidCallback onRetry;
   final VoidCallback onNext;
   final VoidCallback onCategorySelect;
-
+  final bool showNextButton;
   const SuccessPopup({
     super.key,
     required this.level,
@@ -14,6 +14,7 @@ class SuccessPopup extends StatelessWidget {
     required this.onRetry,
     required this.onNext,
     required this.onCategorySelect,
+    required this.showNextButton,
   });
 
   @override
@@ -82,7 +83,8 @@ class SuccessPopup extends StatelessWidget {
                   onTap: () => Navigator.pushReplacementNamed(context, '/home'),
                 ),
                 _popupButton(icon: Icons.refresh, onTap: onRetry),
-                _popupButton(icon: Icons.arrow_forward, onTap: onNext),
+                if (showNextButton)
+                  _popupButton(icon: Icons.arrow_forward, onTap: onNext),
                 _popupButton(icon: Icons.dashboard, onTap: onCategorySelect),
               ],
             ),
