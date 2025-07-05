@@ -41,6 +41,18 @@ class Puzzle {
   );
 }
 
+class CommandItem {
+  final String type;
+  int repeatCount;
+  List<CommandItem> nested;
+
+  CommandItem({
+    required this.type,
+    this.repeatCount = 1,
+    this.nested = const [],
+  });
+}
+
 class PuzzleScreen extends StatefulWidget {
   const PuzzleScreen({super.key});
 
@@ -53,16 +65,16 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   late String puzzleTitle;
   Puzzle? currentPuzzle;
   bool isLoading = true;
-  List<String> commandSequence = [];
-  int? selectedIndex;
+  List<CommandItem> commandSequence = [];
+  CommandItem? selectedCommand;
   final GlobalKey<PuzzleGridState> gridKey = GlobalKey<PuzzleGridState>();
   final storage = FlutterSecureStorage();
+  int moveCounter = 0;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final args = ModalRoute.of(context)?.settings.arguments;
-
     if (args is Map<String, dynamic>) {
       puzzleId = args['id'] ?? 'unknown';
       puzzleTitle = args['title'] ?? 'Untitled Puzzle';
@@ -78,7 +90,6 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       final response = await http.get(
         Uri.parse('http://127.0.0.1:5000/api/puzzle/$id'),
       );
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
@@ -98,38 +109,50 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     if (currentPuzzle == null || gridKey.currentState == null) return;
 
     Point pos = currentPuzzle!.start;
-    int moveCounter = 0;
+    moveCounter = 0;
 
-    for (String move in commandSequence) {
-      await Future.delayed(const Duration(milliseconds: 500));
+    Future<void> execute(List<CommandItem> cmds) async {
+      for (final cmd in cmds) {
+        if (cmd.type == 'Loop') {
+          for (int i = 0; i < cmd.repeatCount; i++) {
+            await execute(cmd.nested);
+          }
+        } else {
+          await Future.delayed(const Duration(milliseconds: 500));
+          Point next = switch (cmd.type) {
+            'Up' => Point(pos.row - 1, pos.col),
+            'Down' => Point(pos.row + 1, pos.col),
+            'Left' => Point(pos.row, pos.col - 1),
+            'Right' => Point(pos.row, pos.col + 1),
+            _ => pos,
+          };
 
-      Point next = switch (move) {
-        'Up' => Point(pos.row - 1, pos.col),
-        'Down' => Point(pos.row + 1, pos.col),
-        'Left' => Point(pos.row, pos.col - 1),
-        'Right' => Point(pos.row, pos.col + 1),
-        _ => pos,
-      };
+          final inBounds =
+              next.row >= 0 &&
+              next.col >= 0 &&
+              next.row < currentPuzzle!.gridSize &&
+              next.col < currentPuzzle!.gridSize;
 
-      final inBounds =
-          next.row >= 0 &&
-          next.col >= 0 &&
-          next.row < currentPuzzle!.gridSize &&
-          next.col < currentPuzzle!.gridSize;
+          final isBlocked = currentPuzzle!.obstacles.contains(next);
 
-      final isBlocked = currentPuzzle!.obstacles.contains(next);
-
-      if (inBounds && !isBlocked) {
-        pos = next;
-        moveCounter++;
-        gridKey.currentState?.updateRobot(pos);
+          if (inBounds && !isBlocked) {
+            pos = next;
+            setState(() {
+              moveCounter++;
+            });
+            gridKey.currentState?.updateRobot(pos);
+          }
+        }
       }
     }
 
+    await execute(commandSequence);
+
     if (pos == currentPuzzle!.goal) {
       int earnedStars = 0;
-      for (int i = 0; i < currentPuzzle!.starMoves.length; i++) {
-        if (moveCounter <= currentPuzzle!.starMoves[i]) {
+      final sortedStarMoves = List<int>.from(currentPuzzle!.starMoves)..sort();
+      for (int i = 0; i < sortedStarMoves.length; i++) {
+        if (moveCounter <= sortedStarMoves[i]) {
           earnedStars = 3 - i;
           break;
         }
@@ -151,23 +174,17 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
               'updated_at': DateTime.now().toIso8601String(),
             }),
           );
-
           if (response.statusCode != 200) {
             print('❌ Failed to save progress: ${response.body}');
-          } else {
-            print('✅ Progress saved successfully.');
           }
         } catch (e) {
           print('❌ Error saving progress: $e');
         }
-      } else {
-        print('❗ JWT token not found.');
       }
 
-      // Prepare next puzzle ID and title
+      final match = RegExp(r'^([a-zA-Z]+)(\d+)$').firstMatch(currentPuzzle!.id);
       String nextPuzzleId = currentPuzzle!.id;
       String nextPuzzleTitle = puzzleTitle;
-      final match = RegExp(r'^([a-zA-Z]+)(\d+)$').firstMatch(currentPuzzle!.id);
       if (match != null) {
         String prefix = match.group(1)!;
         int number = int.parse(match.group(2)!);
@@ -175,13 +192,11 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         nextPuzzleTitle = 'Level ${number + 1}';
       }
 
-      // Check if next puzzle exists
-      bool nextPuzzleExists = false;
       final checkUri = Uri.parse(
         'http://127.0.0.1:5000/api/puzzle/$nextPuzzleId',
       );
       final checkResponse = await http.get(checkUri);
-      nextPuzzleExists = checkResponse.statusCode == 200;
+      bool nextPuzzleExists = checkResponse.statusCode == 200;
 
       showDialog(
         context: context,
@@ -218,7 +233,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
               '/${currentPuzzle!.category}s',
             );
           },
-          showNextButton: nextPuzzleExists, // 🔍
+          showNextButton: nextPuzzleExists,
         ),
       );
     }
@@ -227,20 +242,73 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   void resetSequence() {
     setState(() {
       commandSequence.clear();
-      selectedIndex = null;
+      selectedCommand = null;
+      moveCounter = 0;
       gridKey.currentState?.updateRobot(currentPuzzle!.start);
     });
   }
 
   void deleteSelected() {
-    if (selectedIndex != null &&
-        selectedIndex! >= 0 &&
-        selectedIndex! < commandSequence.length) {
-      setState(() {
-        commandSequence.removeAt(selectedIndex!);
-        selectedIndex = null;
-      });
+    if (selectedCommand == null) return;
+    setState(() {
+      commandSequence.remove(selectedCommand);
+      selectedCommand = null;
+    });
+  }
+
+  IconData _iconFor(String move) {
+    switch (move) {
+      case 'Up':
+        return Icons.arrow_upward;
+      case 'Down':
+        return Icons.arrow_downward;
+      case 'Left':
+        return Icons.arrow_back;
+      case 'Right':
+        return Icons.arrow_forward;
+      case 'Loop':
+        return Icons.loop;
+      default:
+        return Icons.help;
     }
+  }
+
+  List<Widget> _buildDraggableBlocks() {
+    if (currentPuzzle == null) return [];
+
+    const moves = {
+      'Up': Icons.arrow_upward,
+      'Down': Icons.arrow_downward,
+      'Left': Icons.arrow_back,
+      'Right': Icons.arrow_forward,
+    };
+    final blocks = moves.entries.map((entry) {
+      return Draggable<String>(
+        data: entry.key,
+        feedback: CommandBlock(icon: entry.value),
+        childWhenDragging: Opacity(
+          opacity: 0.4,
+          child: CommandBlock(icon: entry.value),
+        ),
+        child: CommandBlock(icon: entry.value),
+      );
+    }).toList();
+
+    if (currentPuzzle!.category.toLowerCase() == 'loop') {
+      blocks.add(
+        Draggable<String>(
+          data: 'Loop',
+          feedback: CommandBlock(icon: Icons.loop),
+          childWhenDragging: Opacity(
+            opacity: 0.4,
+            child: CommandBlock(icon: Icons.loop),
+          ),
+          child: CommandBlock(icon: Icons.loop),
+        ),
+      );
+    }
+
+    return blocks;
   }
 
   @override
@@ -275,6 +343,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                     obstacles: currentPuzzle!.obstacles,
                     starMoves: currentPuzzle!.starMoves,
                     category: currentPuzzle!.category,
+                    moveCount: moveCounter,
                   ),
                   const SizedBox(height: 20),
                   const Text(
@@ -293,55 +362,61 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                     "Command Sequence:",
                     style: TextStyle(fontSize: 18),
                   ),
-                  SizedBox(
-                    height: 80,
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
-                      ),
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.blue, width: 2),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: DragTarget<String>(
-                        onAccept: (data) {
-                          setState(() {
-                            commandSequence.add(data);
-                          });
-                        },
-                        builder: (context, candidateData, rejectedData) {
-                          return ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: commandSequence.length,
-                            itemBuilder: (context, index) {
-                              final move = commandSequence[index];
-                              final emoji = switch (move) {
-                                'Up' => '🔼',
-                                'Down' => '🔽',
-                                'Left' => '◀️',
-                                'Right' => '▶️',
-                                _ => '❓',
-                              };
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    selectedIndex = index;
-                                  });
-                                },
-                                child: CommandBlock(
-                                  label: emoji,
-                                  isSelected: selectedIndex == index,
-                                ),
+                  Container(
+                    height: 120,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.blue, width: 2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: DragTarget<String>(
+                      onAccept: (data) {
+                        setState(() {
+                          if (data == 'Loop') {
+                            commandSequence.add(
+                              CommandItem(
+                                type: 'Loop',
+                                repeatCount: 2,
+                                nested: [],
+                              ),
+                            );
+                          } else {
+                            commandSequence.add(CommandItem(type: data));
+                          }
+                        });
+                      },
+                      builder: (context, candidateData, rejectedData) {
+                        return ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: commandSequence.length,
+                          itemBuilder: (context, index) {
+                            final cmd = commandSequence[index];
+                            if (cmd.type == 'Loop') {
+                              return LoopBlockWidget(
+                                loopCommand: cmd,
+                                isSelected: selectedCommand == cmd,
+                                onSelect: () =>
+                                    setState(() => selectedCommand = cmd),
+                                onUpdate: () => setState(() {}),
                               );
-                            },
-                          );
-                        },
-                      ),
+                            }
+                            return GestureDetector(
+                              onTap: () =>
+                                  setState(() => selectedCommand = cmd),
+                              child: CommandBlock(
+                                icon: _iconFor(cmd.type),
+                                isSelected: selectedCommand == cmd,
+                              ),
+                            );
+                          },
+                        );
+                      },
                     ),
                   ),
-                  const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -370,7 +445,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                       ),
                       const SizedBox(width: 12),
                       ElevatedButton(
-                        onPressed: selectedIndex == null
+                        onPressed: selectedCommand == null
                             ? null
                             : deleteSelected,
                         style: ElevatedButton.styleFrom(
@@ -387,45 +462,123 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
             ),
     );
   }
-
-  List<Widget> _buildDraggableBlocks() {
-    const moves = {'Up': '🔼', 'Down': '🔽', 'Left': '◀️', 'Right': '▶️'};
-
-    return moves.entries.map((entry) {
-      return Draggable<String>(
-        data: entry.key,
-        feedback: CommandBlock(label: entry.value),
-        childWhenDragging: Opacity(
-          opacity: 0.4,
-          child: CommandBlock(label: entry.value),
-        ),
-        child: CommandBlock(label: entry.value),
-      );
-    }).toList();
-  }
 }
 
 class CommandBlock extends StatelessWidget {
-  final String label;
+  final IconData icon;
   final bool isSelected;
-
-  const CommandBlock({super.key, required this.label, this.isSelected = false});
+  const CommandBlock({super.key, required this.icon, this.isSelected = false});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 45,
-      height: 45,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
+      width: 60,
+      height: 60,
+      margin: const EdgeInsets.symmetric(horizontal: 6),
       decoration: BoxDecoration(
         color: Colors.orangeAccent,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: isSelected ? Colors.blue : Colors.black,
           width: isSelected ? 3 : 1,
         ),
       ),
-      child: Center(child: Text(label, style: const TextStyle(fontSize: 25))),
+      child: Center(child: Icon(icon, size: 32)),
     );
   }
+}
+
+class LoopBlockWidget extends StatelessWidget {
+  final CommandItem loopCommand;
+  final VoidCallback onUpdate;
+  final VoidCallback onSelect;
+  final bool isSelected;
+
+  const LoopBlockWidget({
+    super.key,
+    required this.loopCommand,
+    required this.onUpdate,
+    required this.onSelect,
+    required this.isSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onSelect,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 6),
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected ? Colors.blue : Colors.purple,
+            width: isSelected ? 3 : 1,
+          ),
+          borderRadius: BorderRadius.circular(10),
+          color: Colors.purpleAccent.withOpacity(0.2),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.loop),
+                Text(' x${loopCommand.repeatCount}'),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    loopCommand.repeatCount++;
+                    onUpdate();
+                  },
+                ),
+              ],
+            ),
+            Container(
+              height: 60,
+              width: 150,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.purple),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: DragTarget<String>(
+                onAccept: (data) {
+                  loopCommand.nested.add(CommandItem(type: data));
+                  onUpdate();
+                },
+                builder: (context, candidateData, rejectedData) {
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: loopCommand.nested
+                          .map(
+                            (cmd) => Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                              ),
+                              child: GestureDetector(
+                                onTap: () => onSelect(),
+                                child: CommandBlock(
+                                  icon: IconsMap[cmd.type] ?? Icons.help,
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static const Map<String, IconData> IconsMap = {
+    'Up': Icons.arrow_upward,
+    'Down': Icons.arrow_downward,
+    'Left': Icons.arrow_back,
+    'Right': Icons.arrow_forward,
+    'Loop': Icons.loop,
+  };
 }
