@@ -6,6 +6,7 @@ import 'screens/puzzle_selection_page.dart';
 import 'screens/puzzle_gameplay.dart';
 import 'screens/home_page.dart';
 
+
 void main() {
   runApp(const CodeBudApp());
 }
@@ -28,7 +29,7 @@ class CodeBudApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignUpPage(),
         '/puzzle': (context) => const PuzzleScreen(),
-      },
+         },
 
       // Dynamic routes for PuzzleSelectionPage with title + category
       onGenerateRoute: (settings) {
