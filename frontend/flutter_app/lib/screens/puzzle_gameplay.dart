@@ -1,57 +1,20 @@
+import 'dart:nativewrappers/_internal/vm/lib/internal_patch.dart';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'dart:convert';
 
 import '../widgets/puzzle_grid.dart';
 import '../widgets/success_popup_widget.dart';
+import '../widgets/command_block_widget.dart';
+import '../widgets/loop_block_widget.dart';
 
-class Puzzle {
-  final String id;
-  final String title;
-  final int gridSize;
-  final Point start;
-  final Point goal;
-  final List<Point> obstacles;
-  final List<int> starMoves;
-  final String category;
+import '../models/puzzle.dart';
+import '../models/point.dart';
 
-  Puzzle({
-    required this.id,
-    required this.title,
-    required this.gridSize,
-    required this.start,
-    required this.goal,
-    required this.obstacles,
-    required this.starMoves,
-    required this.category,
-  });
+import '../services/puzzle_service.dart';
 
-  factory Puzzle.fromJson(Map<String, dynamic> json) => Puzzle(
-    id: json['id'],
-    title: json['title'],
-    gridSize: json['gridSize'],
-    start: Point.fromList(json['start']),
-    goal: Point.fromList(json['goal']),
-    obstacles: List<List<dynamic>>.from(
-      json['obstacles'],
-    ).map((e) => Point.fromList(e)).toList(),
-    starMoves: List<int>.from(json['starMoves'] ?? [6, 8, 10]),
-    category: json['category'],
-  );
-}
-
-class CommandItem {
-  final String type;
-  int repeatCount;
-  List<CommandItem> nested;
-
-  CommandItem({
-    required this.type,
-    this.repeatCount = 1,
-    this.nested = const [],
-  });
-}
+import '../utils/icon_mapper.dart';
 
 class PuzzleScreen extends StatefulWidget {
   const PuzzleScreen({super.key});
@@ -78,29 +41,23 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     if (args is Map<String, dynamic>) {
       puzzleId = args['id'] ?? 'unknown';
       puzzleTitle = args['title'] ?? 'Untitled Puzzle';
-      fetchPuzzle(puzzleId);
+      _loadPuzzle(); // call properly
     } else {
       puzzleId = 'unknown';
       puzzleTitle = 'Unknown';
     }
   }
 
-  Future<void> fetchPuzzle(String id) async {
+  Future<void> _loadPuzzle() async {
+    setState(() => isLoading = true);
     try {
-      final response = await http.get(
-        Uri.parse('http://127.0.0.1:5000/api/puzzle/$id'),
-      );
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          currentPuzzle = Puzzle.fromJson(data);
-          isLoading = false;
-        });
-      } else {
-        throw Exception('Failed to load puzzle');
-      }
+      final puzzle = await PuzzleService.fetchPuzzle(puzzleId);
+      setState(() {
+        currentPuzzle = puzzle;
+        isLoading = false;
+      });
     } catch (e) {
-      print('Error fetching puzzle: $e');
+      printToConsole('Error loading puzzle: $e');
       setState(() => isLoading = false);
     }
   }
@@ -161,24 +118,16 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       final token = await storage.read(key: 'jwt_token');
       if (token != null) {
         try {
-          final response = await http.post(
-            Uri.parse('http://127.0.0.1:5000/api/progress'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-            body: jsonEncode({
-              'puzzle_id': currentPuzzle!.id,
-              'stars': earnedStars,
-              'status': 'completed',
-              'updated_at': DateTime.now().toIso8601String(),
-            }),
+          final success = await PuzzleService.saveProgress(
+            token,
+            currentPuzzle!,
+            earnedStars,
           );
-          if (response.statusCode != 200) {
-            print('❌ Failed to save progress: ${response.body}');
+          if (!success) {
+            printToConsole('❌ Failed to save progress');
           }
         } catch (e) {
-          print('❌ Error saving progress: $e');
+          printToConsole('❌ Error saving progress: $e');
         }
       }
 
@@ -254,23 +203,6 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       commandSequence.remove(selectedCommand);
       selectedCommand = null;
     });
-  }
-
-  IconData _iconFor(String move) {
-    switch (move) {
-      case 'Up':
-        return Icons.arrow_upward;
-      case 'Down':
-        return Icons.arrow_downward;
-      case 'Left':
-        return Icons.arrow_back;
-      case 'Right':
-        return Icons.arrow_forward;
-      case 'Loop':
-        return Icons.loop;
-      default:
-        return Icons.help;
-    }
   }
 
   List<Widget> _buildDraggableBlocks() {
@@ -408,7 +340,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                               onTap: () =>
                                   setState(() => selectedCommand = cmd),
                               child: CommandBlock(
-                                icon: _iconFor(cmd.type),
+                                icon: IconMapper.getIcon(cmd.type),
                                 isSelected: selectedCommand == cmd,
                               ),
                             );
@@ -462,137 +394,4 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
             ),
     );
   }
-}
-
-class CommandBlock extends StatelessWidget {
-  final IconData icon;
-  final bool isSelected;
-  const CommandBlock({super.key, required this.icon, this.isSelected = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 60,
-      height: 60,
-      margin: const EdgeInsets.symmetric(horizontal: 6),
-      decoration: BoxDecoration(
-        color: Colors.orangeAccent,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: isSelected ? Colors.blue : Colors.black,
-          width: isSelected ? 3 : 1,
-        ),
-      ),
-      child: Center(child: Icon(icon, size: 32)),
-    );
-  }
-}
-
-class LoopBlockWidget extends StatelessWidget {
-  final CommandItem loopCommand;
-  final VoidCallback onUpdate;
-  final VoidCallback onSelect;
-  final bool isSelected;
-
-  const LoopBlockWidget({
-    super.key,
-    required this.loopCommand,
-    required this.onUpdate,
-    required this.onSelect,
-    required this.isSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onSelect,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 1),
-        padding: const EdgeInsets.all(1),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isSelected ? Colors.blue : Colors.purple,
-            width: isSelected ? 3 : 1,
-          ),
-          borderRadius: BorderRadius.circular(10),
-          color: Colors.purpleAccent.withOpacity(0.2),
-        ),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.loop),
-                IconButton(
-                  icon: Icon(
-                    Icons.remove,
-                    color: loopCommand.repeatCount > 2
-                        ? Colors.black
-                        : Colors.grey,
-                  ),
-                  onPressed: loopCommand.repeatCount > 2
-                      ? () {
-                          loopCommand.repeatCount--;
-                          onUpdate();
-                        }
-                      : null, // disables the button when <= 2
-                ),
-                Text('${loopCommand.repeatCount}'),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () {
-                    loopCommand.repeatCount++;
-                    onUpdate();
-                  },
-                ),
-              ],
-            ),
-            Container(
-              height: 40,
-              width: 150,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.purple),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: DragTarget<String>(
-                onAccept: (data) {
-                  loopCommand.nested.add(CommandItem(type: data));
-                  onUpdate();
-                },
-                builder: (context, candidateData, rejectedData) {
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: loopCommand.nested
-                          .map(
-                            (cmd) => Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 0,
-                              ),
-                              child: GestureDetector(
-                                onTap: () => onSelect(),
-                                child: CommandBlock(
-                                  icon: IconsMap[cmd.type] ?? Icons.help,
-                                ),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  static const Map<String, IconData> IconsMap = {
-    'Up': Icons.arrow_upward,
-    'Down': Icons.arrow_downward,
-    'Left': Icons.arrow_back,
-    'Right': Icons.arrow_forward,
-    'Loop': Icons.loop,
-  };
 }
