@@ -7,6 +7,7 @@ class SuccessPopup extends StatelessWidget {
   final VoidCallback onNext;
   final VoidCallback onCategorySelect;
   final bool showNextButton;
+
   const SuccessPopup({
     super.key,
     required this.level,
@@ -62,14 +63,17 @@ class SuccessPopup extends StatelessWidget {
             ),
 
             const SizedBox(height: 24),
-            const Text(
-              'GREAT JOB!',
-              style: TextStyle(
+
+            // Replaced "GREAT JOB!" with random success line
+            Text(
+              _getRandomSuccessLine(),
+              style: const TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w900,
                 color: Colors.black,
               ),
             ),
+
             const SizedBox(height: 32),
 
             // Buttons
@@ -92,6 +96,22 @@ class SuccessPopup extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // Success line logic
+  String _getRandomSuccessLine() {
+    final successLines = [
+      'GREAT JOB!',
+      'WELL DONE!',
+      'YOU DID IT!',
+      'AWESOME!',
+      'FANTASTIC!',
+      'SUPERB!',
+      'NAILED IT!',
+      'EXCELLENT!',
+    ];
+    successLines.shuffle();
+    return successLines.first;
   }
 
   Widget _popupButton({required IconData icon, required VoidCallback onTap}) {
