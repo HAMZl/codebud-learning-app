@@ -184,7 +184,19 @@ class PuzzleGridState extends State<PuzzleGrid> {
         borderRadius: BorderRadius.circular(4), // <- Less rounded corners
       ),
       child: Center(
-        child: icon != null
+        child: isRobot && isGoal
+            ? Stack(
+                alignment: Alignment.center,
+                children: [
+                  Icon(Icons.star, size: 32, color: Colors.amber), // Goal
+                  Icon(
+                    Icons.smart_toy,
+                    size: 36,
+                    color: Colors.green.shade800,
+                  ), // Robot on top
+                ],
+              )
+            : icon != null
             ? Icon(icon, size: 36, color: iconColor)
             : const SizedBox.shrink(),
       ),

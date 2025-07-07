@@ -507,8 +507,8 @@ class LoopBlockWidget extends StatelessWidget {
     return GestureDetector(
       onTap: onSelect,
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 6),
-        padding: const EdgeInsets.all(6),
+        margin: const EdgeInsets.symmetric(horizontal: 1),
+        padding: const EdgeInsets.all(1),
         decoration: BoxDecoration(
           border: Border.all(
             color: isSelected ? Colors.blue : Colors.purple,
@@ -522,7 +522,21 @@ class LoopBlockWidget extends StatelessWidget {
             Row(
               children: [
                 const Icon(Icons.loop),
-                Text(' x${loopCommand.repeatCount}'),
+                IconButton(
+                  icon: Icon(
+                    Icons.remove,
+                    color: loopCommand.repeatCount > 2
+                        ? Colors.black
+                        : Colors.grey,
+                  ),
+                  onPressed: loopCommand.repeatCount > 2
+                      ? () {
+                          loopCommand.repeatCount--;
+                          onUpdate();
+                        }
+                      : null, // disables the button when <= 2
+                ),
+                Text('${loopCommand.repeatCount}'),
                 IconButton(
                   icon: const Icon(Icons.add),
                   onPressed: () {
@@ -533,7 +547,7 @@ class LoopBlockWidget extends StatelessWidget {
               ],
             ),
             Container(
-              height: 60,
+              height: 40,
               width: 150,
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.purple),
@@ -552,7 +566,7 @@ class LoopBlockWidget extends StatelessWidget {
                           .map(
                             (cmd) => Padding(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
+                                horizontal: 0,
                               ),
                               child: GestureDetector(
                                 onTap: () => onSelect(),
