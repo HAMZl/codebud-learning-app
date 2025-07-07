@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'command_block_widget.dart';
 import '../models/puzzle.dart';
+import '../utils/icon_mapper.dart';
 
 class LoopBlockWidget extends StatelessWidget {
   final CommandItem loopCommand;
@@ -29,7 +30,7 @@ class LoopBlockWidget extends StatelessWidget {
             width: isSelected ? 3 : 1,
           ),
           borderRadius: BorderRadius.circular(10),
-          color: Colors.purpleAccent.withOpacity(0.2),
+          color: Colors.purpleAccent.withAlpha((0.2 * 255).round()),
         ),
         child: Column(
           children: [
@@ -85,7 +86,9 @@ class LoopBlockWidget extends StatelessWidget {
                               child: GestureDetector(
                                 onTap: onSelect,
                                 child: CommandBlock(
-                                  icon: IconsMap[cmd.type] ?? Icons.help,
+                                  icon: IconMapper.getIcon(cmd.type),
+                                  label: cmd.type,
+                                  isSelected: isSelected,
                                 ),
                               ),
                             ),
@@ -101,12 +104,4 @@ class LoopBlockWidget extends StatelessWidget {
       ),
     );
   }
-
-  static const Map<String, IconData> IconsMap = {
-    'Up': Icons.arrow_upward,
-    'Down': Icons.arrow_downward,
-    'Left': Icons.arrow_back,
-    'Right': Icons.arrow_forward,
-    'Loop': Icons.loop,
-  };
 }

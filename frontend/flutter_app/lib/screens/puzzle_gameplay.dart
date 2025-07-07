@@ -1,5 +1,3 @@
-import 'dart:nativewrappers/_internal/vm/lib/internal_patch.dart';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -11,9 +9,7 @@ import '../widgets/loop_block_widget.dart';
 
 import '../models/puzzle.dart';
 import '../models/point.dart';
-
 import '../services/puzzle_service.dart';
-
 import '../utils/icon_mapper.dart';
 
 class PuzzleScreen extends StatefulWidget {
@@ -33,6 +29,13 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   final GlobalKey<PuzzleGridState> gridKey = GlobalKey<PuzzleGridState>();
   final storage = FlutterSecureStorage();
   int moveCounter = 0;
+  final ScrollController _availMovesCtrl = ScrollController();
+
+  @override
+  void dispose() {
+    _availMovesCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -41,10 +44,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     if (args is Map<String, dynamic>) {
       puzzleId = args['id'] ?? 'unknown';
       puzzleTitle = args['title'] ?? 'Untitled Puzzle';
-      _loadPuzzle(); // call properly
-    } else {
-      puzzleId = 'unknown';
-      puzzleTitle = 'Unknown';
+      _loadPuzzle();
     }
   }
 
@@ -57,7 +57,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         isLoading = false;
       });
     } catch (e) {
-      printToConsole('Error loading puzzle: $e');
+      print('Error loading puzzle: $e');
       setState(() => isLoading = false);
     }
   }
@@ -117,18 +117,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
       final token = await storage.read(key: 'jwt_token');
       if (token != null) {
-        try {
-          final success = await PuzzleService.saveProgress(
-            token,
-            currentPuzzle!,
-            earnedStars,
-          );
-          if (!success) {
-            printToConsole('❌ Failed to save progress');
-          }
-        } catch (e) {
-          printToConsole('❌ Error saving progress: $e');
-        }
+        await PuzzleService.saveProgress(token, currentPuzzle!, earnedStars);
       }
 
       final match = RegExp(r'^([a-zA-Z]+)(\d+)$').firstMatch(currentPuzzle!.id);
@@ -206,42 +195,64 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   }
 
   List<Widget> _buildDraggableBlocks() {
-    if (currentPuzzle == null) return [];
-
-    const moves = {
-      'Up': Icons.arrow_upward,
-      'Down': Icons.arrow_downward,
-      'Left': Icons.arrow_back,
-      'Right': Icons.arrow_forward,
+    const moveMap = {
+      'Up': {'icon': Icons.arrow_upward, 'label': 'Up'},
+      'Down': {'icon': Icons.arrow_downward, 'label': 'Down'},
+      'Left': {'icon': Icons.arrow_back, 'label': 'Left'},
+      'Right': {'icon': Icons.arrow_forward, 'label': 'Right'},
     };
-    final blocks = moves.entries.map((entry) {
+
+    final blocks = moveMap.entries.map((entry) {
       return Draggable<String>(
         data: entry.key,
-        feedback: CommandBlock(icon: entry.value),
+        feedback: CommandBlock(
+          icon: entry.value['icon'] as IconData,
+          label: entry.value['label'] as String,
+        ),
         childWhenDragging: Opacity(
           opacity: 0.4,
-          child: CommandBlock(icon: entry.value),
+          child: CommandBlock(
+            icon: entry.value['icon'] as IconData,
+            label: entry.value['label'] as String,
+          ),
         ),
-        child: CommandBlock(icon: entry.value),
+        child: CommandBlock(
+          icon: entry.value['icon'] as IconData,
+          label: entry.value['label'] as String,
+        ),
       );
     }).toList();
 
-    if (currentPuzzle!.category.toLowerCase() == 'loop') {
-      blocks.add(
+    // Include the Loop block if applicable
+    if (currentPuzzle?.category.toLowerCase() == 'loop') {
+      blocks.insert(
+        0,
         Draggable<String>(
           data: 'Loop',
-          feedback: CommandBlock(icon: Icons.loop),
+          feedback: CommandBlock(icon: Icons.loop, label: 'Loop'),
           childWhenDragging: Opacity(
             opacity: 0.4,
-            child: CommandBlock(icon: Icons.loop),
+            child: CommandBlock(icon: Icons.loop, label: 'Loop'),
           ),
-          child: CommandBlock(icon: Icons.loop),
+          child: CommandBlock(icon: Icons.loop, label: 'Loop'),
         ),
       );
     }
-
     return blocks;
   }
+
+  BoxDecoration _cardDecoration(Color borderColor) => BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(12),
+    border: Border.all(color: borderColor, width: 2),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.grey.shade300,
+        blurRadius: 6,
+        offset: const Offset(0, 3),
+      ),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -278,120 +289,145 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                     moveCount: moveCounter,
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    "Available Moves:",
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    alignment: WrapAlignment.center,
-                    children: _buildDraggableBlocks(),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    "Command Sequence:",
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  Container(
-                    height: 120,
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.blue, width: 2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: DragTarget<String>(
-                      onAccept: (data) {
-                        setState(() {
-                          if (data == 'Loop') {
-                            commandSequence.add(
-                              CommandItem(
-                                type: 'Loop',
-                                repeatCount: 2,
-                                nested: [],
-                              ),
-                            );
-                          } else {
-                            commandSequence.add(CommandItem(type: data));
-                          }
-                        });
-                      },
-                      builder: (context, candidateData, rejectedData) {
-                        return ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: commandSequence.length,
-                          itemBuilder: (context, index) {
-                            final cmd = commandSequence[index];
-                            if (cmd.type == 'Loop') {
-                              return LoopBlockWidget(
-                                loopCommand: cmd,
-                                isSelected: selectedCommand == cmd,
-                                onSelect: () =>
-                                    setState(() => selectedCommand = cmd),
-                                onUpdate: () => setState(() {}),
-                              );
-                            }
-                            return GestureDetector(
-                              onTap: () =>
-                                  setState(() => selectedCommand = cmd),
-                              child: CommandBlock(
-                                icon: IconMapper.getIcon(cmd.type),
-                                isSelected: selectedCommand == cmd,
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: commandSequence.isEmpty
-                            ? null
-                            : playCommands,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: commandSequence.isEmpty
-                              ? Colors.grey
-                              : Colors.orange,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text("Play"),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: commandSequence.isEmpty
-                            ? null
-                            : resetSequence,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text("Reset"),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: selectedCommand == null
-                            ? null
-                            : deleteSelected,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueGrey,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text("Delete"),
-                      ),
-                    ],
-                  ),
+                  _buildAvailableMoves(),
+                  const SizedBox(height: 12),
+                  _buildCommandSequence(),
+                  const SizedBox(height: 12),
+                  _buildControlButtons(),
                   const SizedBox(height: 20),
                 ],
               ),
             ),
     );
   }
+
+  Widget _buildAvailableMoves() => Container(
+    width: double.infinity,
+    height: 160,
+    margin: const EdgeInsets.symmetric(horizontal: 20),
+    padding: const EdgeInsets.all(16),
+    decoration: _cardDecoration(Colors.deepPurple),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Available Moves:',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        Expanded(
+          child: Scrollbar(
+            controller: _availMovesCtrl,
+            thumbVisibility: true,
+            child: SingleChildScrollView(
+              controller: _availMovesCtrl,
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                children: _buildDraggableBlocks()
+                    .map(
+                      (chip) => Padding(
+                        padding: const EdgeInsets.only(right: 20),
+                        child: chip,
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _buildCommandSequence() => Container(
+    width: double.infinity,
+    margin: const EdgeInsets.symmetric(horizontal: 20),
+    padding: const EdgeInsets.all(16),
+    decoration: _cardDecoration(Colors.deepPurple),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Move Sequence:',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 90,
+          child: DragTarget<String>(
+            onAccept: (data) {
+              setState(() {
+                if (data == 'Loop') {
+                  commandSequence.add(
+                    CommandItem(type: 'Loop', repeatCount: 2, nested: []),
+                  );
+                } else {
+                  commandSequence.add(CommandItem(type: data));
+                }
+              });
+            },
+            builder: (context, _, __) => ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: commandSequence.length,
+              itemBuilder: (_, index) {
+                final cmd = commandSequence[index];
+                if (cmd.type == 'Loop') {
+                  return LoopBlockWidget(
+                    loopCommand: cmd,
+                    isSelected: selectedCommand == cmd,
+                    onSelect: () => setState(() => selectedCommand = cmd),
+                    onUpdate: () => setState(() {}),
+                  );
+                }
+                final iconData = IconMapper.getIconAndLabel(cmd.type);
+                return GestureDetector(
+                  onTap: () => setState(() => selectedCommand = cmd),
+                  child: CommandBlock(
+                    icon: iconData['icon'],
+                    label: iconData['label'],
+                    isSelected: selectedCommand == cmd,
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _buildControlButtons() => Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      ElevatedButton(
+        onPressed: commandSequence.isEmpty ? null : playCommands,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: commandSequence.isEmpty
+              ? Colors.grey
+              : Colors.orange,
+          foregroundColor: Colors.white,
+        ),
+        child: const Text("Play"),
+      ),
+      const SizedBox(width: 12),
+      ElevatedButton(
+        onPressed: commandSequence.isEmpty ? null : resetSequence,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.white,
+        ),
+        child: const Text("Reset"),
+      ),
+      const SizedBox(width: 12),
+      ElevatedButton(
+        onPressed: selectedCommand == null ? null : deleteSelected,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blueGrey,
+          foregroundColor: Colors.white,
+        ),
+        child: const Text("Delete"),
+      ),
+    ],
+  );
 }
