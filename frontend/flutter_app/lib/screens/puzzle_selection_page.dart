@@ -142,7 +142,7 @@ class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
                                   ),
                                 ),
                                 Expanded(
-                                  flex: 1,
+                                  flex: 0,
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 8.0,
