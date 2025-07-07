@@ -30,6 +30,7 @@ flutter:
   assets:
     - lib/assets/images/codebud_logo.png
     - assets/images/codebud_logo.png
+    - assets/images/homepage_logo.png
     - assets/images/loops.png
     - assets/images/sequencing.png
     - assets/images/conditionals.png

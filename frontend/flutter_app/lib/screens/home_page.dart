@@ -6,7 +6,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.white, // Match clean white background
       body: SafeArea(
         child: Column(
           children: [
@@ -30,9 +30,9 @@ class HomePage extends StatelessWidget {
                     alignment: Alignment.centerRight,
                     child: ClipOval(
                       child: Image.asset(
-                        'assets/images/codebud_logo.png',
-                        height: 50,
-                        width: 50,
+                        'assets/images/homepage_logo.png',
+                        height: 80,
+                        width: 80,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -58,6 +58,7 @@ class HomePage extends StatelessWidget {
 
             const SizedBox(height: 24),
 
+            // Puzzle Category Grid
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -79,16 +80,16 @@ class HomePage extends StatelessWidget {
                       context,
                       title: 'Loops',
                       icon: Icons.repeat,
-                      bgColor: Colors.green.shade400,
-                      iconColor: Colors.green.shade800,
+                      bgColor: Colors.green.shade300,
+                      iconColor: Colors.green.shade900,
                       onTapRoute: '/loops',
                     ),
                     _buildCard(
                       context,
                       title: 'Conditionals',
                       icon: Icons.device_unknown,
-                      bgColor: Colors.orange.shade200,
-                      iconColor: Colors.orange.shade800,
+                      bgColor: Colors.orange.shade300,
+                      iconColor: Colors.orange.shade900,
                       onTapRoute: '/conditionals',
                     ),
                   ],
@@ -113,9 +114,20 @@ class HomePage extends StatelessWidget {
       onTap: () => Navigator.pushNamed(context, onTapRoute),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade300),
+          gradient: LinearGradient(
+            colors: [bgColor.withOpacity(0.3), bgColor.withOpacity(0.1)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: bgColor.withOpacity(0.6), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: bgColor.withOpacity(0.2),
+              blurRadius: 8,
+              offset: const Offset(2, 4),
+            ),
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
