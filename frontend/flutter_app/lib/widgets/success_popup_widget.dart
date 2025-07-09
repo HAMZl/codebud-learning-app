@@ -120,7 +120,7 @@ class SuccessPopup extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFF6C63FF),
+          color: const Color(0xFFFFA726),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: Colors.white, size: 30),
