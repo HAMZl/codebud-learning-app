@@ -7,6 +7,7 @@ class IconMapper {
     'Left': {'icon': Icons.arrow_back, 'label': 'Left'},
     'Right': {'icon': Icons.arrow_forward, 'label': 'Right'},
     'Loop': {'icon': Icons.loop, 'label': 'Loop'},
+    'If': {'icon': Icons.question_mark, 'label': 'If'}, // ← Added conditional
   };
 
   static IconData getIcon(String type) {

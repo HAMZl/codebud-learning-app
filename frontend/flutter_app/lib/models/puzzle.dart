@@ -34,10 +34,12 @@ class CommandItem {
   final String type;
   int repeatCount;
   List<CommandItem> nested;
+  String? condition;
 
   CommandItem({
     required this.type,
     this.repeatCount = 1,
     this.nested = const [],
+    this.condition,
   });
 }

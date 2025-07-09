@@ -6,6 +6,7 @@ import '../widgets/puzzle_grid.dart';
 import '../widgets/success_popup_widget.dart';
 import '../widgets/command_block_widget.dart';
 import '../widgets/loop_block_widget.dart';
+import '../widgets/conditional_block_widget.dart';
 
 import '../models/puzzle.dart';
 import '../models/point.dart';
@@ -48,6 +49,40 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     }
   }
 
+  bool _evaluateCondition(String condition, Point pos) {
+    Point forward = pos;
+    switch (commandSequence.last.type) {
+      case 'Up':
+        forward = Point(pos.row - 1, pos.col);
+        break;
+      case 'Down':
+        forward = Point(pos.row + 1, pos.col);
+        break;
+      case 'Left':
+        forward = Point(pos.row, pos.col - 1);
+        break;
+      case 'Right':
+        forward = Point(pos.row, pos.col + 1);
+        break;
+    }
+
+    final inBounds =
+        forward.row >= 0 &&
+        forward.col >= 0 &&
+        forward.row < currentPuzzle!.gridSize &&
+        forward.col < currentPuzzle!.gridSize;
+
+    final isBlocked = currentPuzzle!.obstacles.contains(forward);
+    final isGoalAhead = forward == currentPuzzle!.goal;
+
+    return switch (condition) {
+      'goalAhead' => isGoalAhead,
+      'pathBlocked' => isBlocked || !inBounds,
+      'pathClear' => inBounds && !isBlocked,
+      _ => false,
+    };
+  }
+
   Future<void> _loadPuzzle() async {
     setState(() => isLoading = true);
     try {
@@ -72,6 +107,10 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       for (final cmd in cmds) {
         if (cmd.type == 'Loop') {
           for (int i = 0; i < cmd.repeatCount; i++) {
+            await execute(cmd.nested);
+          }
+        } else if (cmd.type == 'If') {
+          if (_evaluateCondition(cmd.condition ?? '', pos)) {
             await execute(cmd.nested);
           }
         } else {
@@ -195,35 +234,9 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   }
 
   List<Widget> _buildDraggableBlocks() {
-    const moveMap = {
-      'Up': {'icon': Icons.arrow_upward, 'label': 'Up'},
-      'Down': {'icon': Icons.arrow_downward, 'label': 'Down'},
-      'Left': {'icon': Icons.arrow_back, 'label': 'Left'},
-      'Right': {'icon': Icons.arrow_forward, 'label': 'Right'},
-    };
+    if (currentPuzzle == null) return [];
 
-    final blocks = moveMap.entries.map((entry) {
-      return Draggable<String>(
-        data: entry.key,
-        feedback: CommandBlock(
-          icon: entry.value['icon'] as IconData,
-          label: entry.value['label'] as String,
-        ),
-        childWhenDragging: Opacity(
-          opacity: 0.4,
-          child: CommandBlock(
-            icon: entry.value['icon'] as IconData,
-            label: entry.value['label'] as String,
-          ),
-        ),
-        child: CommandBlock(
-          icon: entry.value['icon'] as IconData,
-          label: entry.value['label'] as String,
-        ),
-      );
-    }).toList();
-
-    // Include the Loop block if applicable
+    final blocks = <Widget>[];
     if (currentPuzzle?.category.toLowerCase() == 'loop') {
       blocks.insert(
         0,
@@ -238,6 +251,50 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         ),
       );
     }
+
+    if (currentPuzzle!.category.toLowerCase() == 'conditional') {
+      blocks.add(
+        Draggable<String>(
+          data: 'If',
+          feedback: CommandBlock(icon: Icons.help_outline, label: 'If'),
+          childWhenDragging: Opacity(
+            opacity: 0.4,
+            child: CommandBlock(icon: Icons.help_outline, label: 'If'),
+          ),
+          child: CommandBlock(icon: Icons.help_outline, label: 'If'),
+        ),
+      );
+    }
+
+    const moveMap = {
+      'Up': {'icon': Icons.arrow_upward, 'label': 'Up'},
+      'Down': {'icon': Icons.arrow_downward, 'label': 'Down'},
+      'Left': {'icon': Icons.arrow_back, 'label': 'Left'},
+      'Right': {'icon': Icons.arrow_forward, 'label': 'Right'},
+    };
+
+    blocks.addAll(
+      moveMap.entries.map((entry) {
+        return Draggable<String>(
+          data: entry.key,
+          feedback: CommandBlock(
+            icon: entry.value['icon'] as IconData,
+            label: entry.value['label'] as String,
+          ),
+          childWhenDragging: Opacity(
+            opacity: 0.4,
+            child: CommandBlock(
+              icon: entry.value['icon'] as IconData,
+              label: entry.value['label'] as String,
+            ),
+          ),
+          child: CommandBlock(
+            icon: entry.value['icon'] as IconData,
+            label: entry.value['label'] as String,
+          ),
+        );
+      }),
+    );
     return blocks;
   }
 
@@ -362,11 +419,21 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                   commandSequence.add(
                     CommandItem(type: 'Loop', repeatCount: 2, nested: []),
                   );
+                } else if (data == 'If' &&
+                    currentPuzzle!.category.toLowerCase() == 'conditional') {
+                  commandSequence.add(
+                    CommandItem(
+                      type: 'If',
+                      condition: 'goalAhead',
+                      nested: [],
+                    ), // default
+                  );
                 } else {
                   commandSequence.add(CommandItem(type: data));
                 }
               });
             },
+
             builder: (context, _, __) => ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: commandSequence.length,
@@ -380,6 +447,16 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                     onUpdate: () => setState(() {}),
                   );
                 }
+
+                if (cmd.type == 'If') {
+                  return ConditionalBlockWidget(
+                    conditionalCommand: cmd,
+                    isSelected: selectedCommand == cmd,
+                    onSelect: () => setState(() => selectedCommand = cmd),
+                    onUpdate: () => setState(() {}),
+                  );
+                }
+
                 final iconData = IconMapper.getIconAndLabel(cmd.type);
                 return GestureDetector(
                   onTap: () => setState(() => selectedCommand = cmd),
