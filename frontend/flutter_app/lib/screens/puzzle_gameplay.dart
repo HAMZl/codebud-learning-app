@@ -33,12 +33,6 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   final ScrollController _availMovesCtrl = ScrollController();
 
   @override
-  void dispose() {
-    _availMovesCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final args = ModalRoute.of(context)?.settings.arguments;
@@ -50,20 +44,29 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   }
 
   bool _evaluateCondition(String condition, Point pos) {
+    final parts = condition.split('_');
+    if (parts.length != 2) return false;
+
+    final target = parts[0]; // goal, obstacle, empty
+    final direction = parts[1]; // up, down, left, right
+
+    // Determine the forward point based on direction
     Point forward = pos;
-    switch (commandSequence.last.type) {
-      case 'Up':
+    switch (direction) {
+      case 'up':
         forward = Point(pos.row - 1, pos.col);
         break;
-      case 'Down':
+      case 'down':
         forward = Point(pos.row + 1, pos.col);
         break;
-      case 'Left':
+      case 'left':
         forward = Point(pos.row, pos.col - 1);
         break;
-      case 'Right':
+      case 'right':
         forward = Point(pos.row, pos.col + 1);
         break;
+      default:
+        return false; // Invalid direction
     }
 
     final inBounds =
@@ -75,11 +78,11 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     final isBlocked = currentPuzzle!.obstacles.contains(forward);
     final isGoalAhead = forward == currentPuzzle!.goal;
 
-    return switch (condition) {
-      'goalAhead' => isGoalAhead,
-      'pathBlocked' => isBlocked || !inBounds,
-      'pathClear' => inBounds && !isBlocked,
-      _ => false,
+    return switch (target) {
+      'goal' => isGoalAhead,
+      'obstacle' => isBlocked,
+      'empty' => inBounds && !isBlocked && !isGoalAhead,
+      _ => false, // Invalid target
     };
   }
 
@@ -110,7 +113,9 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
             await execute(cmd.nested);
           }
         } else if (cmd.type == 'If') {
-          if (_evaluateCondition(cmd.condition ?? '', pos)) {
+          final condition = cmd.condition ?? '';
+          final shouldExecute = _evaluateCondition(condition, pos);
+          if (shouldExecute) {
             await execute(cmd.nested);
           }
         } else {
@@ -397,6 +402,16 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     ),
   );
 
+  final ScrollController _commandScrollCtrl =
+      ScrollController(); // add this in your state
+
+  @override
+  void dispose() {
+    _availMovesCtrl.dispose();
+    _commandScrollCtrl.dispose(); // dispose this too
+    super.dispose();
+  }
+
   Widget _buildCommandSequence() => Container(
     width: double.infinity,
     margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -422,51 +437,61 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                 } else if (data == 'If' &&
                     currentPuzzle!.category.toLowerCase() == 'conditional') {
                   commandSequence.add(
-                    CommandItem(
-                      type: 'If',
-                      condition: 'goalAhead',
-                      nested: [],
-                    ), // default
+                    CommandItem(type: 'If', condition: 'goal_up', nested: []),
                   );
                 } else {
                   commandSequence.add(CommandItem(type: data));
                 }
               });
+
+              // Optional: auto-scroll to the end
+              Future.delayed(const Duration(milliseconds: 300), () {
+                if (_commandScrollCtrl.hasClients) {
+                  _commandScrollCtrl.animateTo(
+                    _commandScrollCtrl.position.maxScrollExtent,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                  );
+                }
+              });
             },
+            builder: (context, _, __) => Scrollbar(
+              controller: _commandScrollCtrl,
+              thumbVisibility: true,
+              child: ListView.builder(
+                controller: _commandScrollCtrl,
+                scrollDirection: Axis.horizontal,
+                itemCount: commandSequence.length,
+                itemBuilder: (context, index) {
+                  final cmd = commandSequence[index];
+                  if (cmd.type == 'Loop') {
+                    return LoopBlockWidget(
+                      loopCommand: cmd,
+                      isSelected: selectedCommand == cmd,
+                      onSelect: () => setState(() => selectedCommand = cmd),
+                      onUpdate: () => setState(() {}),
+                    );
+                  }
 
-            builder: (context, _, __) => ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: commandSequence.length,
-              itemBuilder: (_, index) {
-                final cmd = commandSequence[index];
-                if (cmd.type == 'Loop') {
-                  return LoopBlockWidget(
-                    loopCommand: cmd,
-                    isSelected: selectedCommand == cmd,
-                    onSelect: () => setState(() => selectedCommand = cmd),
-                    onUpdate: () => setState(() {}),
+                  if (cmd.type == 'If') {
+                    return ConditionalBlockWidget(
+                      conditionalCommand: cmd,
+                      isSelected: selectedCommand == cmd,
+                      onSelect: () => setState(() => selectedCommand = cmd),
+                    );
+                  }
+
+                  final iconData = IconMapper.getIconAndLabel(cmd.type);
+                  return GestureDetector(
+                    onTap: () => setState(() => selectedCommand = cmd),
+                    child: CommandBlock(
+                      icon: iconData['icon'],
+                      label: iconData['label'],
+                      isSelected: selectedCommand == cmd,
+                    ),
                   );
-                }
-
-                if (cmd.type == 'If') {
-                  return ConditionalBlockWidget(
-                    conditionalCommand: cmd,
-                    isSelected: selectedCommand == cmd,
-                    onSelect: () => setState(() => selectedCommand = cmd),
-                    onUpdate: () => setState(() {}),
-                  );
-                }
-
-                final iconData = IconMapper.getIconAndLabel(cmd.type);
-                return GestureDetector(
-                  onTap: () => setState(() => selectedCommand = cmd),
-                  child: CommandBlock(
-                    icon: iconData['icon'],
-                    label: iconData['label'],
-                    isSelected: selectedCommand == cmd,
-                  ),
-                );
-              },
+                },
+              ),
             ),
           ),
         ),
