@@ -20,8 +20,8 @@ class ConditionalBlockWidget extends StatefulWidget {
 }
 
 class _ConditionalBlockWidgetState extends State<ConditionalBlockWidget> {
-  late String target;
-  late String direction;
+  late String localTarget;
+  late String localDirection;
 
   final availableTargets = ['goal', 'obstacle', 'empty'];
   final availableDirections = ['up', 'down', 'left', 'right'];
@@ -30,12 +30,31 @@ class _ConditionalBlockWidgetState extends State<ConditionalBlockWidget> {
   void initState() {
     super.initState();
     final parts = (widget.conditionalCommand.condition ?? 'goal_up').split('_');
-    target = parts[0];
-    direction = parts.length > 1 ? parts[1] : 'up';
+    localTarget = parts[0];
+    localDirection = parts.length > 1 ? parts[1] : 'up';
   }
 
-  void _updateCommandCondition() {
-    widget.conditionalCommand.condition = '${target}_$direction';
+  void _updateLocalTarget(String? newTarget) {
+    if (newTarget == null) return;
+    setState(() {
+      localTarget = newTarget;
+      // Do NOT update parent command immediately
+    });
+  }
+
+  void _updateLocalDirection(String? newDir) {
+    if (newDir == null) return;
+    setState(() {
+      localDirection = newDir;
+      // Do NOT update parent command immediately
+    });
+  }
+
+  @override
+  void dispose() {
+    // Sync the condition back once user leaves widget (optional)
+    widget.conditionalCommand.condition = '${localTarget}_$localDirection';
+    super.dispose();
   }
 
   @override
@@ -54,12 +73,9 @@ class _ConditionalBlockWidgetState extends State<ConditionalBlockWidget> {
           color: Colors.lightGreenAccent.withAlpha((0.2 * 255).round()),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.question_mark, size: 24),
             const SizedBox(width: 4),
-
-            // Dropdown column
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -68,24 +84,17 @@ class _ConditionalBlockWidgetState extends State<ConditionalBlockWidget> {
                   width: 80,
                   child: DropdownButton<String>(
                     isExpanded: true,
-                    value: target,
+                    value: localTarget,
                     style: const TextStyle(fontSize: 12),
                     items: availableTargets
                         .map(
                           (value) => DropdownMenuItem(
                             value: value,
-                            child: Text(value, overflow: TextOverflow.ellipsis),
+                            child: Text(value),
                           ),
                         )
                         .toList(),
-                    onChanged: (val) {
-                      if (val != null) {
-                        setState(() {
-                          target = val;
-                          _updateCommandCondition();
-                        });
-                      }
-                    },
+                    onChanged: _updateLocalTarget,
                   ),
                 ),
                 SizedBox(
@@ -93,32 +102,20 @@ class _ConditionalBlockWidgetState extends State<ConditionalBlockWidget> {
                   width: 80,
                   child: DropdownButton<String>(
                     isExpanded: true,
-                    value: direction,
+                    value: localDirection,
                     style: const TextStyle(fontSize: 12),
                     items: availableDirections
                         .map(
-                          (dir) => DropdownMenuItem(
-                            value: dir,
-                            child: Text(dir, overflow: TextOverflow.ellipsis),
-                          ),
+                          (dir) =>
+                              DropdownMenuItem(value: dir, child: Text(dir)),
                         )
                         .toList(),
-                    onChanged: (val) {
-                      if (val != null) {
-                        setState(() {
-                          direction = val;
-                          _updateCommandCondition();
-                        });
-                      }
-                    },
+                    onChanged: _updateLocalDirection,
                   ),
                 ),
               ],
             ),
-
             const SizedBox(width: 8),
-
-            // Command sequence (DragTarget)
             Container(
               height: 80,
               width: 160,
