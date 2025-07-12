@@ -27,7 +27,7 @@ class PuzzleGrid extends StatefulWidget {
 
 class PuzzleGridState extends State<PuzzleGrid> {
   late Point robotPosition;
-  final double cellSize = 70;
+  final double cellSize = 60;
 
   final Color primaryOrange = const Color(0xFFFFA726);
   final Color lightOrange = const Color(0xFFFFE0B2);
@@ -60,11 +60,11 @@ class PuzzleGridState extends State<PuzzleGrid> {
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
               color: lightOrange,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: primaryOrange, width: 1.5),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: primaryOrange, width: 1.2),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -72,18 +72,18 @@ class PuzzleGridState extends State<PuzzleGrid> {
                 Row(
                   children: List.generate(3, (i) {
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 1),
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
                           const Icon(
                             Icons.star_border,
-                            size: 32,
+                            size: 24, // smaller
                             color: Colors.black,
                           ),
                           Icon(
                             Icons.star,
-                            size: 28,
+                            size: 20, // smaller
                             color: i < starsEarned
                                 ? primaryOrange
                                 : lightOrange,
@@ -96,15 +96,15 @@ class PuzzleGridState extends State<PuzzleGrid> {
                 Text(
                   'Moves: ${widget.moveCount}',
                   style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black, // <- Changed to black
+                    fontSize: 16, // smaller
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
               border: Border.all(color: Colors.black, width: 2),

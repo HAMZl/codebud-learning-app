@@ -320,7 +320,8 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: const Color(0xFFFFA726),
+        foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -339,7 +340,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
           : SingleChildScrollView(
               child: Column(
                 children: [
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   PuzzleGrid(
                     key: gridKey,
                     gridSize: currentPuzzle!.gridSize,
@@ -350,13 +351,13 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                     category: currentPuzzle!.category,
                     moveCount: moveCounter,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   _buildAvailableMoves(),
                   const SizedBox(height: 12),
                   _buildCommandSequence(),
                   const SizedBox(height: 12),
                   _buildControlButtons(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                 ],
               ),
             ),
@@ -365,18 +366,21 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   Widget _buildAvailableMoves() => Container(
     width: double.infinity,
-    height: 160,
-    margin: const EdgeInsets.symmetric(horizontal: 20),
-    padding: const EdgeInsets.all(16),
-    decoration: _cardDecoration(Colors.deepPurple),
+    height: 100, // Reduced height
+    margin: const EdgeInsets.symmetric(horizontal: 16),
+    padding: const EdgeInsets.all(12), // Reduced padding
+    decoration: _cardDecoration(const Color(0xFFFFA726)),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Available Moves:',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ), // Slightly smaller text
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Expanded(
           child: Scrollbar(
             controller: _availMovesCtrl,
@@ -384,12 +388,14 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
             child: SingleChildScrollView(
               controller: _availMovesCtrl,
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 6),
               child: Row(
                 children: _buildDraggableBlocks()
                     .map(
                       (chip) => Padding(
-                        padding: const EdgeInsets.only(right: 20),
+                        padding: const EdgeInsets.only(
+                          right: 12,
+                        ), // Reduced spacing
                         child: chip,
                       ),
                     )
@@ -414,19 +420,23 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   Widget _buildCommandSequence() => Container(
     width: double.infinity,
-    margin: const EdgeInsets.symmetric(horizontal: 20),
-    padding: const EdgeInsets.all(16),
-    decoration: _cardDecoration(Colors.deepPurple),
+    height: 134, // Reduced height
+    margin: const EdgeInsets.symmetric(horizontal: 16), // Reduced margin
+    padding: const EdgeInsets.all(12), // Reduced padding
+    decoration: _cardDecoration(const Color(0xFFFFA726)),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Move Sequence:',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ), // Smaller text
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8), // Less vertical space
         SizedBox(
-          height: 90,
+          height: 74, // Reduced from 90
           child: DragTarget<String>(
             onAccept: (data) {
               setState(() {
@@ -444,7 +454,6 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                 }
               });
 
-              // Optional: auto-scroll to the end
               Future.delayed(const Duration(milliseconds: 300), () {
                 if (_commandScrollCtrl.hasClients) {
                   _commandScrollCtrl.animateTo(

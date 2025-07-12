@@ -22,15 +22,14 @@ class LoopBlockWidget extends StatelessWidget {
     return GestureDetector(
       onTap: onSelect,
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.all(6),
+        padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
           border: Border.all(
-            color: isSelected ? Colors.blue : Colors.purple,
+            color: isSelected ? Colors.blue : Colors.green,
             width: isSelected ? 3 : 1,
           ),
           borderRadius: BorderRadius.circular(10),
-          color: Colors.purpleAccent.withAlpha((0.2 * 255).round()),
+          color: Colors.lightGreenAccent.withAlpha((0.2 * 255).round()),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,13 +37,13 @@ class LoopBlockWidget extends StatelessWidget {
             // Left: Loop icon + +/- buttons
             Column(
               children: [
-                const Icon(Icons.loop, size: 24),
+                const Icon(Icons.loop, size: 16),
                 Row(
                   children: [
                     IconButton(
                       icon: Icon(
                         Icons.remove,
-                        size: 16,
+                        size: 12,
                         color: loopCommand.repeatCount > 2
                             ? Colors.black
                             : Colors.grey,
@@ -58,7 +57,7 @@ class LoopBlockWidget extends StatelessWidget {
                     ),
                     Text('${loopCommand.repeatCount}'),
                     IconButton(
-                      icon: const Icon(Icons.add, size: 16),
+                      icon: const Icon(Icons.add, size: 12),
                       onPressed: () {
                         loopCommand.repeatCount++;
                         onUpdate();
@@ -69,14 +68,14 @@ class LoopBlockWidget extends StatelessWidget {
               ],
             ),
 
-            const SizedBox(width: 8),
+            const SizedBox(width: 0),
 
             // Right: Scrollable nested command sequence
             Container(
-              height: 80,
-              width: 200,
+              height: 68,
+              width: 180,
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.purple),
+                border: Border.all(color: Colors.green),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: DragTarget<String>(

@@ -66,22 +66,22 @@ class _ConditionalBlockWidgetState extends State<ConditionalBlockWidget> {
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
           border: Border.all(
-            color: widget.isSelected ? Colors.blue : Colors.green,
+            color: widget.isSelected ? Colors.blue : Colors.orange,
             width: widget.isSelected ? 3 : 1,
           ),
           borderRadius: BorderRadius.circular(10),
-          color: Colors.lightGreenAccent.withAlpha((0.2 * 255).round()),
+          color: Colors.orange.shade100,
         ),
         child: Row(
           children: [
-            const Icon(Icons.question_mark, size: 24),
+            const Icon(Icons.question_mark, size: 16),
             const SizedBox(width: 4),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
                   height: 28,
-                  width: 80,
+                  width: 60,
                   child: DropdownButton<String>(
                     isExpanded: true,
                     value: localTarget,
@@ -99,7 +99,7 @@ class _ConditionalBlockWidgetState extends State<ConditionalBlockWidget> {
                 ),
                 SizedBox(
                   height: 28,
-                  width: 80,
+                  width: 60,
                   child: DropdownButton<String>(
                     isExpanded: true,
                     value: localDirection,
@@ -117,10 +117,10 @@ class _ConditionalBlockWidgetState extends State<ConditionalBlockWidget> {
             ),
             const SizedBox(width: 8),
             Container(
-              height: 80,
-              width: 160,
+              height: 68,
+              width: 180,
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.green),
+                border: Border.all(color: Colors.orange),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: DragTarget<String>(
