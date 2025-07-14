@@ -30,7 +30,7 @@ class HomePage extends StatelessWidget {
                     alignment: Alignment.centerRight,
                     child: ClipOval(
                       child: Image.asset(
-                        'assets/images/homepage_logo.png',
+                        'lib/assets/images/homepage_logo.png',
                         height: 40,
                         width: 40,
                         fit: BoxFit.cover,

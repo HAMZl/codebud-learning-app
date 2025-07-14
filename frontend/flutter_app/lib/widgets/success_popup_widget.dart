@@ -45,21 +45,30 @@ class SuccessPopup extends StatelessWidget {
             const SizedBox(height: 20),
 
             // Star Row (dynamic)
+            // Animated Star Row
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                3,
-                (i) => Padding(
+              children: List.generate(3, (i) {
+                final isEarned = i < earnedStars;
+                return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Icon(
-                    Icons.star,
-                    color: i < earnedStars
-                        ? Colors.amber
-                        : Colors.grey.shade300,
-                    size: 60,
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: isEarned ? 1 : 0),
+                    duration:
+                        Duration(milliseconds: 400 + i * 200), // staggered
+                    builder: (context, value, child) {
+                      return Transform.scale(
+                        scale: value,
+                        child: Icon(
+                          Icons.star,
+                          color: isEarned ? Colors.amber : Colors.grey.shade300,
+                          size: 60,
+                        ),
+                      );
+                    },
                   ),
-                ),
-              ),
+                );
+              }),
             ),
 
             const SizedBox(height: 24),

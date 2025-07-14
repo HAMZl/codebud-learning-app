@@ -4,7 +4,8 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.8.1
+  sdk: ">=3.0.0 <4.0.0"
+
 
 dependencies:
   flutter:
@@ -12,6 +13,8 @@ dependencies:
   http: ^1.2.1
   flutter_secure_storage: ^9.0.0
   cupertino_icons: ^1.0.8
+  audioplayers: ^5.2.1
+
 
 dev_dependencies:
   flutter_test:
@@ -30,7 +33,10 @@ flutter:
   assets:
     - lib/assets/images/codebud_logo.png
     - assets/images/codebud_logo.png
-    - assets/images/homepage_logo.png
+    - lib/assets/images/homepage_logo.png
     - assets/images/loops.png
     - assets/images/sequencing.png
     - assets/images/conditionals.png
+    - lib/assets/sounds/move.mp3
+    - lib/assets/sounds/move.wav
+

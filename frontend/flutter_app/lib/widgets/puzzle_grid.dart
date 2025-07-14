@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 import '../models/point.dart';
 
 class PuzzleGrid extends StatefulWidget {
@@ -31,6 +32,8 @@ class PuzzleGridState extends State<PuzzleGrid> {
 
   final Color primaryOrange = const Color(0xFFFFA726);
   final Color lightOrange = const Color(0xFFFFE0B2);
+
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void initState() {
@@ -78,15 +81,14 @@ class PuzzleGridState extends State<PuzzleGrid> {
                         children: [
                           const Icon(
                             Icons.star_border,
-                            size: 24, // smaller
+                            size: 24,
                             color: Colors.black,
                           ),
                           Icon(
                             Icons.star,
-                            size: 20, // smaller
-                            color: i < starsEarned
-                                ? primaryOrange
-                                : lightOrange,
+                            size: 20,
+                            color:
+                                i < starsEarned ? primaryOrange : lightOrange,
                           ),
                         ],
                       ),
@@ -96,7 +98,7 @@ class PuzzleGridState extends State<PuzzleGrid> {
                 Text(
                   'Moves: ${widget.moveCount}',
                   style: const TextStyle(
-                    fontSize: 16, // smaller
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.black,
                   ),
@@ -114,18 +116,7 @@ class PuzzleGridState extends State<PuzzleGrid> {
             child: SizedBox(
               width: widget.gridSize * cellSize,
               height: widget.gridSize * cellSize,
-              child: GridView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: widget.gridSize * widget.gridSize,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: widget.gridSize,
-                ),
-                itemBuilder: (context, index) {
-                  final row = index ~/ widget.gridSize;
-                  final col = index % widget.gridSize;
-                  return _buildGridTile(row, col);
-                },
-              ),
+              child: Stack(children: [_buildGrid(), _buildAnimatedRobot()]),
             ),
           ),
         ],
@@ -133,9 +124,23 @@ class PuzzleGridState extends State<PuzzleGrid> {
     );
   }
 
+  Widget _buildGrid() {
+    return GridView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: widget.gridSize * widget.gridSize,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: widget.gridSize,
+      ),
+      itemBuilder: (context, index) {
+        final row = index ~/ widget.gridSize;
+        final col = index % widget.gridSize;
+        return _buildGridTile(row, col);
+      },
+    );
+  }
+
   Widget _buildGridTile(int row, int col) {
     final point = Point(row, col);
-    bool isRobot = point == robotPosition;
     bool isGoal = point == widget.goal;
     bool isObstacle = widget.obstacles.contains(point);
 
@@ -151,10 +156,6 @@ class PuzzleGridState extends State<PuzzleGrid> {
       bgColor = Colors.yellow.shade100;
       icon = Icons.star;
       iconColor = Colors.amber;
-    } else if (isRobot) {
-      bgColor = Colors.green.shade100;
-      icon = Icons.smart_toy;
-      iconColor = Colors.green.shade800;
     }
 
     return Container(
@@ -162,24 +163,27 @@ class PuzzleGridState extends State<PuzzleGrid> {
       decoration: BoxDecoration(
         color: bgColor,
         border: Border.all(color: Colors.black, width: 1.5),
-        borderRadius: BorderRadius.circular(4), // <- Less rounded corners
+        borderRadius: BorderRadius.circular(4),
       ),
       child: Center(
-        child: isRobot && isGoal
-            ? Stack(
-                alignment: Alignment.center,
-                children: [
-                  Icon(Icons.star, size: 32, color: Colors.amber), // Goal
-                  Icon(
-                    Icons.smart_toy,
-                    size: 36,
-                    color: Colors.green.shade800,
-                  ), // Robot on top
-                ],
-              )
-            : icon != null
+        child: icon != null
             ? Icon(icon, size: 36, color: iconColor)
             : const SizedBox.shrink(),
+      ),
+    );
+  }
+
+  Widget _buildAnimatedRobot() {
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 300),
+      top: robotPosition.row * cellSize,
+      left: robotPosition.col * cellSize,
+      child: SizedBox(
+        width: cellSize,
+        height: cellSize,
+        child: Center(
+          child: Icon(Icons.smart_toy, size: 36, color: Colors.green.shade800),
+        ),
       ),
     );
   }
