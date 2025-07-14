@@ -13,7 +13,6 @@ dependencies:
   http: ^1.2.1
   flutter_secure_storage: ^9.0.0
   cupertino_icons: ^1.0.8
-  audioplayers: ^5.2.1
 
 
 dev_dependencies:
@@ -25,7 +24,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^6.0.0
+  flutter_lints: ^2.0.1
 
 flutter:
   uses-material-design: true
