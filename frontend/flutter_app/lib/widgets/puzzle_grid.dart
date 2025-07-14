@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
 import '../models/point.dart';
 
 class PuzzleGrid extends StatefulWidget {
@@ -32,8 +31,6 @@ class PuzzleGridState extends State<PuzzleGrid> {
 
   final Color primaryOrange = const Color(0xFFFFA726);
   final Color lightOrange = const Color(0xFFFFE0B2);
-
-  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void initState() {
@@ -87,8 +84,9 @@ class PuzzleGridState extends State<PuzzleGrid> {
                           Icon(
                             Icons.star,
                             size: 20,
-                            color:
-                                i < starsEarned ? primaryOrange : lightOrange,
+                            color: i < starsEarned
+                                ? primaryOrange
+                                : lightOrange,
                           ),
                         ],
                       ),
