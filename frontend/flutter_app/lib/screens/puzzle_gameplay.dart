@@ -175,7 +175,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       }
 
       final checkUri = Uri.parse(
-        'http://127.0.0.1:5000/api/puzzle/$nextPuzzleId',
+        'https://codebud-learning-app.onrender.com/api/puzzle/$nextPuzzleId',
       );
       final checkResponse = await http.get(checkUri);
       bool nextPuzzleExists = checkResponse.statusCode == 200;

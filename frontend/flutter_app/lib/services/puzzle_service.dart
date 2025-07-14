@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/puzzle.dart';
 
 class PuzzleService {
-  static const _baseUrl = 'http://127.0.0.1:5000/api';
+  static const _baseUrl = 'https://codebud-learning-app.onrender.com/api';
 
   static Future<Puzzle?> fetchPuzzle(String id) async {
     final res = await http.get(Uri.parse('$_baseUrl/puzzle/$id'));

@@ -44,7 +44,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:5000/login'),
+        Uri.parse('https://codebud-learning-app.onrender.com/login'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(body),
       );

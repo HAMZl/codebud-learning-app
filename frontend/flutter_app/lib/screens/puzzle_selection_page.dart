@@ -46,7 +46,9 @@ class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
       if (token == null) throw Exception("JWT token not found");
 
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:5000/api/puzzles/${widget.category}'),
+        Uri.parse(
+          'https://codebud-learning-app.onrender.com/api/puzzles/${widget.category}',
+        ),
         headers: {'Authorization': 'Bearer $token'},
       );
 
