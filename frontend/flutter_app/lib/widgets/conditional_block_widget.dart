@@ -38,6 +38,7 @@ class _ConditionalBlockWidgetState extends State<ConditionalBlockWidget> {
     if (newTarget == null) return;
     setState(() {
       localTarget = newTarget;
+      widget.conditionalCommand.condition = '${localTarget}_$localDirection';
       // Do NOT update parent command immediately
     });
   }
@@ -46,6 +47,7 @@ class _ConditionalBlockWidgetState extends State<ConditionalBlockWidget> {
     if (newDir == null) return;
     setState(() {
       localDirection = newDir;
+      widget.conditionalCommand.condition = '${localTarget}_$localDirection';
       // Do NOT update parent command immediately
     });
   }

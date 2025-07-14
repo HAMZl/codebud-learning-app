@@ -15,7 +15,7 @@ class LaunchPage extends StatelessWidget {
               children: [
                 const Spacer(flex: 2),
                 // Logo moved up, enlarged
-                Image.asset('assets/images/codebud_logo.png', height: 240),
+                Image.asset('lib/assets/images/codebud_logo.png', height: 240),
                 const SizedBox(height: 12),
 
                 // Subtitle
