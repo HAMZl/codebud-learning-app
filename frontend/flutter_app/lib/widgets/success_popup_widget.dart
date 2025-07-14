@@ -54,8 +54,9 @@ class SuccessPopup extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: TweenAnimationBuilder<double>(
                     tween: Tween(begin: 0, end: isEarned ? 1 : 0),
-                    duration:
-                        Duration(milliseconds: 400 + i * 200), // staggered
+                    duration: Duration(
+                      milliseconds: 400 + i * 200,
+                    ), // staggered
                     builder: (context, value, child) {
                       return Transform.scale(
                         scale: value,
@@ -129,7 +130,7 @@ class SuccessPopup extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFF6C63FF),
+          color: const Color(0xFFFFA726),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: Colors.white, size: 30),
