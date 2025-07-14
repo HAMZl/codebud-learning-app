@@ -60,10 +60,18 @@ def login():
 @app.route('/api/puzzles/<category>', methods=['GET'])
 @jwt_required()
 def get_puzzles_by_category(category):
+    import re
+
+    def extract_number(puzzle_id):
+        match = re.search(r'\d+', puzzle_id)
+        return int(match.group()) if match else float('inf')
+
     username = get_jwt_identity()  # Extract username or user ID from JWT
 
     # Fetch all puzzles in the category
     puzzles = list(db.puzzles.find({"category": category}))
+    puzzles.sort(key=lambda p: extract_number(p['id']))
+
     puzzle_ids = [p['id'] for p in puzzles]
 
     # Fetch user progress for those puzzles
