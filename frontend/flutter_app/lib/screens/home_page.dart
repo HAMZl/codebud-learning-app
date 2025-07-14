@@ -20,7 +20,7 @@ class HomePage extends StatelessWidget {
                     child: Text(
                       'CodeBud',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 25,
                         fontWeight: FontWeight.w700,
                         color: Colors.black87,
                       ),
@@ -30,9 +30,9 @@ class HomePage extends StatelessWidget {
                     alignment: Alignment.centerRight,
                     child: ClipOval(
                       child: Image.asset(
-                        'assets/images/homepage_logo.png',
-                        height: 80,
-                        width: 80,
+                        'lib/assets/images/homepage_logo.png',
+                        height: 40,
+                        width: 40,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -61,7 +61,10 @@ class HomePage extends StatelessWidget {
             // Puzzle Category Grid
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: GridView.count(
                   crossAxisCount: 2,
                   crossAxisSpacing: 12,

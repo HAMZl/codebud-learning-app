@@ -24,6 +24,13 @@ class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
     Colors.pink.shade300,
     Colors.teal.shade300,
     Colors.orange.shade300,
+    Colors.blue.shade300,
+    Colors.purple.shade300,
+    Colors.red.shade300,
+    Colors.green.shade300,
+    Colors.cyan.shade300,
+    Colors.amber.shade300,
+    Colors.indigo.shade300,
   ];
 
   @override

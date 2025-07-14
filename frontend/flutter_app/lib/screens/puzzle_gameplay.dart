@@ -6,6 +6,7 @@ import '../widgets/puzzle_grid.dart';
 import '../widgets/success_popup_widget.dart';
 import '../widgets/command_block_widget.dart';
 import '../widgets/loop_block_widget.dart';
+import '../widgets/conditional_block_widget.dart';
 
 import '../models/puzzle.dart';
 import '../models/point.dart';
@@ -32,12 +33,6 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   final ScrollController _availMovesCtrl = ScrollController();
 
   @override
-  void dispose() {
-    _availMovesCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final args = ModalRoute.of(context)?.settings.arguments;
@@ -46,6 +41,49 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       puzzleTitle = args['title'] ?? 'Untitled Puzzle';
       _loadPuzzle();
     }
+  }
+
+  bool _evaluateCondition(String condition, Point pos) {
+    final parts = condition.split('_');
+    if (parts.length != 2) return false;
+
+    final target = parts[0]; // goal, obstacle, empty
+    final direction = parts[1]; // up, down, left, right
+
+    // Determine the forward point based on direction
+    Point forward = pos;
+    switch (direction) {
+      case 'up':
+        forward = Point(pos.row - 1, pos.col);
+        break;
+      case 'down':
+        forward = Point(pos.row + 1, pos.col);
+        break;
+      case 'left':
+        forward = Point(pos.row, pos.col - 1);
+        break;
+      case 'right':
+        forward = Point(pos.row, pos.col + 1);
+        break;
+      default:
+        return false; // Invalid direction
+    }
+
+    final inBounds =
+        forward.row >= 0 &&
+        forward.col >= 0 &&
+        forward.row < currentPuzzle!.gridSize &&
+        forward.col < currentPuzzle!.gridSize;
+
+    final isBlocked = currentPuzzle!.obstacles.contains(forward);
+    final isGoalAhead = forward == currentPuzzle!.goal;
+
+    return switch (target) {
+      'goal' => isGoalAhead,
+      'obstacle' => isBlocked,
+      'empty' => inBounds && !isBlocked && !isGoalAhead,
+      _ => false, // Invalid target
+    };
   }
 
   Future<void> _loadPuzzle() async {
@@ -72,6 +110,12 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       for (final cmd in cmds) {
         if (cmd.type == 'Loop') {
           for (int i = 0; i < cmd.repeatCount; i++) {
+            await execute(cmd.nested);
+          }
+        } else if (cmd.type == 'If') {
+          final condition = cmd.condition ?? '';
+          final shouldExecute = _evaluateCondition(condition, pos);
+          if (shouldExecute) {
             await execute(cmd.nested);
           }
         } else {
@@ -195,35 +239,9 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   }
 
   List<Widget> _buildDraggableBlocks() {
-    const moveMap = {
-      'Up': {'icon': Icons.arrow_upward, 'label': 'Up'},
-      'Down': {'icon': Icons.arrow_downward, 'label': 'Down'},
-      'Left': {'icon': Icons.arrow_back, 'label': 'Left'},
-      'Right': {'icon': Icons.arrow_forward, 'label': 'Right'},
-    };
+    if (currentPuzzle == null) return [];
 
-    final blocks = moveMap.entries.map((entry) {
-      return Draggable<String>(
-        data: entry.key,
-        feedback: CommandBlock(
-          icon: entry.value['icon'] as IconData,
-          label: entry.value['label'] as String,
-        ),
-        childWhenDragging: Opacity(
-          opacity: 0.4,
-          child: CommandBlock(
-            icon: entry.value['icon'] as IconData,
-            label: entry.value['label'] as String,
-          ),
-        ),
-        child: CommandBlock(
-          icon: entry.value['icon'] as IconData,
-          label: entry.value['label'] as String,
-        ),
-      );
-    }).toList();
-
-    // Include the Loop block if applicable
+    final blocks = <Widget>[];
     if (currentPuzzle?.category.toLowerCase() == 'loop') {
       blocks.insert(
         0,
@@ -238,6 +256,50 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         ),
       );
     }
+
+    if (currentPuzzle!.category.toLowerCase() == 'conditional') {
+      blocks.add(
+        Draggable<String>(
+          data: 'If',
+          feedback: CommandBlock(icon: Icons.help_outline, label: 'If'),
+          childWhenDragging: Opacity(
+            opacity: 0.4,
+            child: CommandBlock(icon: Icons.help_outline, label: 'If'),
+          ),
+          child: CommandBlock(icon: Icons.help_outline, label: 'If'),
+        ),
+      );
+    }
+
+    const moveMap = {
+      'Up': {'icon': Icons.arrow_upward, 'label': 'Up'},
+      'Down': {'icon': Icons.arrow_downward, 'label': 'Down'},
+      'Left': {'icon': Icons.arrow_back, 'label': 'Left'},
+      'Right': {'icon': Icons.arrow_forward, 'label': 'Right'},
+    };
+
+    blocks.addAll(
+      moveMap.entries.map((entry) {
+        return Draggable<String>(
+          data: entry.key,
+          feedback: CommandBlock(
+            icon: entry.value['icon'] as IconData,
+            label: entry.value['label'] as String,
+          ),
+          childWhenDragging: Opacity(
+            opacity: 0.4,
+            child: CommandBlock(
+              icon: entry.value['icon'] as IconData,
+              label: entry.value['label'] as String,
+            ),
+          ),
+          child: CommandBlock(
+            icon: entry.value['icon'] as IconData,
+            label: entry.value['label'] as String,
+          ),
+        );
+      }),
+    );
     return blocks;
   }
 
@@ -258,7 +320,8 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: const Color(0xFFFFA726),
+        foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -277,7 +340,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
           : SingleChildScrollView(
               child: Column(
                 children: [
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   PuzzleGrid(
                     key: gridKey,
                     gridSize: currentPuzzle!.gridSize,
@@ -288,13 +351,13 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                     category: currentPuzzle!.category,
                     moveCount: moveCounter,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   _buildAvailableMoves(),
                   const SizedBox(height: 12),
                   _buildCommandSequence(),
                   const SizedBox(height: 12),
                   _buildControlButtons(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                 ],
               ),
             ),
@@ -303,18 +366,21 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   Widget _buildAvailableMoves() => Container(
     width: double.infinity,
-    height: 160,
-    margin: const EdgeInsets.symmetric(horizontal: 20),
-    padding: const EdgeInsets.all(16),
-    decoration: _cardDecoration(Colors.deepPurple),
+    height: 100, // Reduced height
+    margin: const EdgeInsets.symmetric(horizontal: 16),
+    padding: const EdgeInsets.all(12), // Reduced padding
+    decoration: _cardDecoration(const Color(0xFFFFA726)),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Available Moves:',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ), // Slightly smaller text
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Expanded(
           child: Scrollbar(
             controller: _availMovesCtrl,
@@ -322,12 +388,14 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
             child: SingleChildScrollView(
               controller: _availMovesCtrl,
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 6),
               child: Row(
                 children: _buildDraggableBlocks()
                     .map(
                       (chip) => Padding(
-                        padding: const EdgeInsets.only(right: 20),
+                        padding: const EdgeInsets.only(
+                          right: 12,
+                        ), // Reduced spacing
                         child: chip,
                       ),
                     )
@@ -340,21 +408,35 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     ),
   );
 
+  final ScrollController _commandScrollCtrl =
+      ScrollController(); // add this in your state
+
+  @override
+  void dispose() {
+    _availMovesCtrl.dispose();
+    _commandScrollCtrl.dispose(); // dispose this too
+    super.dispose();
+  }
+
   Widget _buildCommandSequence() => Container(
     width: double.infinity,
-    margin: const EdgeInsets.symmetric(horizontal: 20),
-    padding: const EdgeInsets.all(16),
-    decoration: _cardDecoration(Colors.deepPurple),
+    height: 134, // Reduced height
+    margin: const EdgeInsets.symmetric(horizontal: 16), // Reduced margin
+    padding: const EdgeInsets.all(12), // Reduced padding
+    decoration: _cardDecoration(const Color(0xFFFFA726)),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Move Sequence:',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ), // Smaller text
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8), // Less vertical space
         SizedBox(
-          height: 90,
+          height: 74, // Reduced from 90
           child: DragTarget<String>(
             onAccept: (data) {
               setState(() {
@@ -362,34 +444,63 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                   commandSequence.add(
                     CommandItem(type: 'Loop', repeatCount: 2, nested: []),
                   );
+                } else if (data == 'If' &&
+                    currentPuzzle!.category.toLowerCase() == 'conditional') {
+                  commandSequence.add(
+                    CommandItem(type: 'If', condition: 'goal_up', nested: []),
+                  );
                 } else {
                   commandSequence.add(CommandItem(type: data));
                 }
               });
-            },
-            builder: (context, _, __) => ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: commandSequence.length,
-              itemBuilder: (_, index) {
-                final cmd = commandSequence[index];
-                if (cmd.type == 'Loop') {
-                  return LoopBlockWidget(
-                    loopCommand: cmd,
-                    isSelected: selectedCommand == cmd,
-                    onSelect: () => setState(() => selectedCommand = cmd),
-                    onUpdate: () => setState(() {}),
+
+              Future.delayed(const Duration(milliseconds: 300), () {
+                if (_commandScrollCtrl.hasClients) {
+                  _commandScrollCtrl.animateTo(
+                    _commandScrollCtrl.position.maxScrollExtent,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
                   );
                 }
-                final iconData = IconMapper.getIconAndLabel(cmd.type);
-                return GestureDetector(
-                  onTap: () => setState(() => selectedCommand = cmd),
-                  child: CommandBlock(
-                    icon: iconData['icon'],
-                    label: iconData['label'],
-                    isSelected: selectedCommand == cmd,
-                  ),
-                );
-              },
+              });
+            },
+            builder: (context, _, __) => Scrollbar(
+              controller: _commandScrollCtrl,
+              thumbVisibility: true,
+              child: ListView.builder(
+                controller: _commandScrollCtrl,
+                scrollDirection: Axis.horizontal,
+                itemCount: commandSequence.length,
+                itemBuilder: (context, index) {
+                  final cmd = commandSequence[index];
+                  if (cmd.type == 'Loop') {
+                    return LoopBlockWidget(
+                      loopCommand: cmd,
+                      isSelected: selectedCommand == cmd,
+                      onSelect: () => setState(() => selectedCommand = cmd),
+                      onUpdate: () => setState(() {}),
+                    );
+                  }
+
+                  if (cmd.type == 'If') {
+                    return ConditionalBlockWidget(
+                      conditionalCommand: cmd,
+                      isSelected: selectedCommand == cmd,
+                      onSelect: () => setState(() => selectedCommand = cmd),
+                    );
+                  }
+
+                  final iconData = IconMapper.getIconAndLabel(cmd.type);
+                  return GestureDetector(
+                    onTap: () => setState(() => selectedCommand = cmd),
+                    child: CommandBlock(
+                      icon: iconData['icon'],
+                      label: iconData['label'],
+                      isSelected: selectedCommand == cmd,
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ),
