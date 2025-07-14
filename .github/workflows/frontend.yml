@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'frontend/**'
+      - 'frontend/flutter_app/**'
 
 jobs:
   build-and-deploy:
@@ -18,15 +18,15 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.13.0'  # Use your Flutter version
+        flutter-version: '3.13.0'  # Update if needed
 
     - name: Install dependencies
       run: flutter pub get
-      working-directory: frontend/
+      working-directory: frontend/flutter_app/
 
     - name: Build Flutter Web
       run: flutter build web
-      working-directory: frontend/
+      working-directory: frontend/flutter_app/
 
     - name: Deploy to Firebase Hosting
       uses: FirebaseExtended/action-hosting-deploy@v0
@@ -35,4 +35,4 @@ jobs:
         firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
         projectId: "${{ secrets.FIREBASE_PROJECT_ID }}"
         channelId: live
-        entryPoint: frontend/
+        entryPoint: frontend/flutter_app/  # This is where firebase.json lives (optional)
