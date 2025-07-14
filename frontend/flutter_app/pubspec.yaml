@@ -31,11 +31,5 @@ flutter:
 
   assets:
     - lib/assets/images/codebud_logo.png
-    - assets/images/codebud_logo.png
     - lib/assets/images/homepage_logo.png
-    - assets/images/loops.png
-    - assets/images/sequencing.png
-    - assets/images/conditionals.png
-    - lib/assets/sounds/move.mp3
-    - lib/assets/sounds/move.wav
 
