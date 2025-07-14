@@ -1,7 +1,18 @@
 from pymongo import MongoClient
 import json
+import os 
+from dotenv import load_dotenv
 
-client = MongoClient("mongodb://localhost:27017/")
+load_dotenv()
+
+client = MongoClient(os.getenv("MONGO_URI"))
+
+try:
+    client.admin.command('ping')
+    print("✅ Successfully connected to MongoDB Atlas!")
+except Exception as e:
+    print("❌ Connection failed:", e)
+
 db = client['codebud']
 puzzles_collection = db['puzzles']
 
