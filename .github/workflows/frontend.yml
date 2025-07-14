@@ -25,7 +25,7 @@ jobs:
       working-directory: frontend/flutter_app/
 
     - name: Build Flutter Web
-      run: flutter build web
+      run: flutter build web --no-tree-shake-icons
       working-directory: frontend/flutter_app/
 
     - name: Deploy to Firebase Hosting
