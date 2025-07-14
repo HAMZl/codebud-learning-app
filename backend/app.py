@@ -102,17 +102,36 @@ def get_puzzle(puzzle_id):
 def save_progress():
     username = get_jwt_identity()
     data = request.get_json()
+    puzzle_id = data['puzzle_id']
+    new_stars = data['stars']
 
-    db.progress.update_one(
-        {'username': username, 'puzzle_id': data['puzzle_id']},
-        {'$set': {
+    existing = db.progress.find_one({'username': username, 'puzzle_id': puzzle_id})
+
+    if not existing:
+        # No progress yet — insert new
+        db.progress.insert_one({
+            'username': username,
+            'puzzle_id': puzzle_id,
             'status': data['status'],
-            'stars': data['stars'],
+            'stars': new_stars,
             'updated_at': data.get('updated_at')
-        }},
-        upsert=True
-    )
-    return jsonify({'success': True, 'message': 'Progress saved'}), 200
+        })
+        return jsonify({'success': True, 'message': 'Progress created'}), 201
+
+    if new_stars > existing.get('stars', 0):
+        # Only update if the new stars are greater
+        db.progress.update_one(
+            {'_id': existing['_id']},
+            {'$set': {
+                'status': data['status'],
+                'stars': new_stars,
+                'updated_at': data.get('updated_at')
+            }}
+        )
+        return jsonify({'success': True, 'message': 'Progress updated'}), 200
+
+    return jsonify({'success': True, 'message': 'No update needed (equal or lower stars)'}), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True)
