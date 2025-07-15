@@ -36,27 +36,16 @@ class _ConditionalBlockWidgetState extends State<ConditionalBlockWidget> {
 
   void _updateLocalTarget(String? newTarget) {
     if (newTarget == null) return;
-    setState(() {
-      localTarget = newTarget;
-      widget.conditionalCommand.condition = '${localTarget}_$localDirection';
-      // Do NOT update parent command immediately
-    });
+    localTarget = newTarget;
+    widget.conditionalCommand.condition = '${localTarget}_$localDirection';
+    setState(() {}); // Trigger UI update
   }
 
   void _updateLocalDirection(String? newDir) {
     if (newDir == null) return;
-    setState(() {
-      localDirection = newDir;
-      widget.conditionalCommand.condition = '${localTarget}_$localDirection';
-      // Do NOT update parent command immediately
-    });
-  }
-
-  @override
-  void dispose() {
-    // Sync the condition back once user leaves widget (optional)
+    localDirection = newDir;
     widget.conditionalCommand.condition = '${localTarget}_$localDirection';
-    super.dispose();
+    setState(() {}); // Trigger UI update
   }
 
   @override
