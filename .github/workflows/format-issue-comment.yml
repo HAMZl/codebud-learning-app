@@ -26,24 +26,24 @@ jobs:
             const summary = getSection("Work Summary");
             const criteria = getSection("Acceptance Criteria");
 
-            const formatted = `
-## Work Item Summary
-
-**Product Manager:** ${productManager}  
-**Developer:** ${developer}
-
----
-
-## Description
-
-${summary}
-
----
-
-## Acceptance Criteria
-
-${criteria}
-`;
+            const formatted = [
+              '## Work Item Summary',
+              '',
+              `**Product Manager:** ${productManager}`,
+              `**Developer:** ${developer}`,
+              '',
+              '---',
+              '',
+              '## Description',
+              '',
+              summary,
+              '',
+              '---',
+              '',
+              '## Acceptance Criteria',
+              '',
+              criteria
+            ].join('\n');
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
