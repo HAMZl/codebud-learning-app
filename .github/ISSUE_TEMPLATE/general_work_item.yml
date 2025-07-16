@@ -1,0 +1,28 @@
+name: General Work Item
+description: A clean and structured template for features or tasks
+title: "[FEATURE]: "
+labels: [feature]
+
+body:
+  - type: input
+    id: product_manager
+    attributes:
+      label: Product Manager
+
+  - type: input
+    id: developer
+    attributes:
+      label: Developer
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Work Summary
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      placeholder: |
+        - [ ] Requirement 1
+        - [ ] Requirement 2
