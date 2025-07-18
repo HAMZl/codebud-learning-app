@@ -3,11 +3,12 @@ from unittest.mock import patch
 
 def test_create_new_progress(client, mock_db_progress):
     mock_db_progress.find_one.return_value = None
+    mock_db_progress.insert_one.return_value = None
 
     with patch("flask_jwt_extended.view_decorators.verify_jwt_in_request", return_value=None), \
          patch("flask_jwt_extended.get_jwt_identity", return_value="testuser"), \
          patch("flask_jwt_extended.utils.get_jwt", return_value={"sub": "testuser"}):
-        
+
         response = client.post("/api/progress", json={
             "puzzle_id": "p1",
             "status": "completed",
@@ -29,7 +30,7 @@ def test_update_progress_with_more_stars(client, mock_db_progress):
     with patch("flask_jwt_extended.view_decorators.verify_jwt_in_request", return_value=None), \
          patch("flask_jwt_extended.get_jwt_identity", return_value="testuser"), \
          patch("flask_jwt_extended.utils.get_jwt", return_value={"sub": "testuser"}):
-
+        
         response = client.post("/api/progress", json={
             "puzzle_id": "p1",
             "status": "completed",
@@ -51,7 +52,7 @@ def test_update_progress_with_fewer_stars(client, mock_db_progress):
     with patch("flask_jwt_extended.view_decorators.verify_jwt_in_request", return_value=None), \
          patch("flask_jwt_extended.get_jwt_identity", return_value="testuser"), \
          patch("flask_jwt_extended.utils.get_jwt", return_value={"sub": "testuser"}):
-
+        
         response = client.post("/api/progress", json={
             "puzzle_id": "p1",
             "status": "completed",
