@@ -6,6 +6,7 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 import os
 from dotenv import load_dotenv
 
+# load dotenv
 load_dotenv()
 
 app = Flask(__name__)

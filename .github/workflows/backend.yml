@@ -11,6 +11,11 @@ jobs:
   test-and-deploy:
     runs-on: ubuntu-latest
 
+    env:
+      FLASK_ENV: testing
+      MONGO_URI: mongodb://localhost:27017
+      JWT_SECRET_KEY: test-secret
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -18,7 +23,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'  # or 3.13 if needed
+          python-version: '3.13'
 
       - name: Install Dependencies
         working-directory: ./backend
