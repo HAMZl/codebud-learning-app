@@ -1,7 +1,17 @@
 from pymongo import MongoClient
+import os 
+from dotenv import load_dotenv
 
-# Connect to local MongoDB (default port)
-client = MongoClient('mongodb://localhost:27017/')
+load_dotenv()
+
+client = MongoClient(os.getenv("MONGO_URI"))
+
+try:
+    client.admin.command('ping')
+    print("✅ Successfully connected to MongoDB Atlas!")
+except Exception as e:
+    print("❌ Connection failed:", e)
+
 
 # Create (or get) the database
 db = client['codebud']
@@ -13,3 +23,5 @@ for col in collections:
     if col not in db.list_collection_names():
         db.create_collection(col)
         print(f"Collection '{col}' created.")
+    else:
+        print(f"Collection '{col}' already exists.")

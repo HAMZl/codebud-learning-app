@@ -65,7 +65,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:5000/signup'),
+        Uri.parse('https://codebud-learning-app.onrender.com/signup'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(body),
       );
@@ -153,21 +153,26 @@ class _SignUpPageState extends State<SignUpPage> {
                   child: Text(
                     'Create an Account',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),
-                Text('👩 Parent Information',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w600,
-                        )),
+                Text(
+                  '👩 Parent Information',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: parentNameController,
-                  decoration: styledInputDecoration('Parent Name', Icons.person),
+                  decoration: styledInputDecoration(
+                    'Parent Name',
+                    Icons.person,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -176,15 +181,20 @@ class _SignUpPageState extends State<SignUpPage> {
                   decoration: styledInputDecoration('Email', Icons.email),
                 ),
                 const SizedBox(height: 32),
-                Text('🧒 Child Information',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w600,
-                        )),
+                Text(
+                  '🧒 Child Information',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: childNameController,
-                  decoration: styledInputDecoration('Child Name', Icons.child_care),
+                  decoration: styledInputDecoration(
+                    'Child Name',
+                    Icons.child_care,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -193,15 +203,20 @@ class _SignUpPageState extends State<SignUpPage> {
                   decoration: styledInputDecoration('Child Age', Icons.cake),
                 ),
                 const SizedBox(height: 32),
-                Text('🔑 Account Details',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w600,
-                        )),
+                Text(
+                  '🔑 Account Details',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: usernameController,
-                  decoration: styledInputDecoration('Username', Icons.account_circle),
+                  decoration: styledInputDecoration(
+                    'Username',
+                    Icons.account_circle,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextField(

@@ -3,6 +3,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from pymongo import MongoClient
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+import os
+from dotenv import load_dotenv
+import re
+
+# load dotenv
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
@@ -12,8 +18,9 @@ app.config['JWT_SECRET_KEY'] = 'your-secret-key'  # Change this to a secure valu
 jwt = JWTManager(app)
 
 # MongoDB connection
-client = MongoClient('mongodb://localhost:27017/')
+client = MongoClient(os.getenv("MONGO_URI"))
 db = client['codebud']
+
 
 @app.route('/signup', methods=['POST'])
 def signup():
@@ -32,6 +39,7 @@ def signup():
     }
     db['users'].insert_one(user)
     return jsonify({'success': True, 'message': 'Account created successfully!'}), 200
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -53,12 +61,19 @@ def login():
     else:
         return jsonify({'success': False, 'message': 'Incorrect password!'}), 401
 
+
 @app.route('/api/puzzles/<category>', methods=['GET'])
 @jwt_required()
 def get_puzzles_by_category(category):
+    def extract_number(puzzle_id):
+        match = re.search(r'\d+', puzzle_id)
+        return int(match.group()) if match else float('inf')
+
     username = get_jwt_identity()
 
     puzzles = list(db.puzzles.find({"category": category}))
+    puzzles.sort(key=lambda p: extract_number(p['id']))
+
     puzzle_ids = [p['id'] for p in puzzles]
 
     progress = list(db.progress.find({"username": username, "puzzle_id": {"$in": puzzle_ids}}))
@@ -72,32 +87,50 @@ def get_puzzles_by_category(category):
 
     return jsonify({'puzzles': puzzles}), 200
 
+
 @app.route('/api/puzzle/<puzzle_id>', methods=['GET'])
 def get_puzzle(puzzle_id):
     puzzle = db.puzzles.find_one({"id": puzzle_id})
-
     if not puzzle:
         return jsonify({"error": "Puzzle not found"}), 404
 
     puzzle['_id'] = str(puzzle['_id'])
     return jsonify(puzzle)
 
+
 @app.route('/api/progress', methods=['POST'])
 @jwt_required()
 def save_progress():
     username = get_jwt_identity()
     data = request.get_json()
+    puzzle_id = data['puzzle_id']
+    new_stars = data['stars']
 
-    db.progress.update_one(
-        {'username': username, 'puzzle_id': data['puzzle_id']},
-        {'$set': {
+    existing = db.progress.find_one({'username': username, 'puzzle_id': puzzle_id})
+
+    if not existing:
+        db.progress.insert_one({
+            'username': username,
+            'puzzle_id': puzzle_id,
             'status': data['status'],
-            'stars': data['stars'],
+            'stars': new_stars,
             'updated_at': data.get('updated_at')
-        }},
-        upsert=True
-    )
-    return jsonify({'success': True, 'message': 'Progress saved'}), 200
+        })
+        return jsonify({'success': True, 'message': 'Progress created'}), 201
+
+    if new_stars > existing.get('stars', 0):
+        db.progress.update_one(
+            {'_id': existing['_id']},
+            {'$set': {
+                'status': data['status'],
+                'stars': new_stars,
+                'updated_at': data.get('updated_at')
+            }}
+        )
+        return jsonify({'success': True, 'message': 'Progress updated'}), 200
+
+    return jsonify({'success': True, 'message': 'No update needed (equal or lower stars)'}), 200
+
 
 # ✅ NEW ERROR HINT SYSTEM ENDPOINT
 @app.route('/api/validate_sequence', methods=['POST'])
@@ -138,4 +171,4 @@ def validate_sequence():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True)=

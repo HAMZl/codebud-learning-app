@@ -24,6 +24,13 @@ class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
     Colors.pink.shade300,
     Colors.teal.shade300,
     Colors.orange.shade300,
+    Colors.blue.shade300,
+    Colors.purple.shade300,
+    Colors.red.shade300,
+    Colors.green.shade300,
+    Colors.cyan.shade300,
+    Colors.amber.shade300,
+    Colors.indigo.shade300,
   ];
 
   @override
@@ -39,7 +46,9 @@ class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
       if (token == null) throw Exception("JWT token not found");
 
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:5000/api/puzzles/${widget.category}'),
+        Uri.parse(
+          'https://codebud-learning-app.onrender.com/api/puzzles/${widget.category}',
+        ),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -142,7 +151,7 @@ class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
                                   ),
                                 ),
                                 Expanded(
-                                  flex: 1,
+                                  flex: 0,
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 8.0,

@@ -44,7 +44,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:5000/login'),
+        Uri.parse('https://codebud-learning-app.onrender.com/login'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(body),
       );
@@ -97,9 +97,9 @@ class _LoginPageState extends State<LoginPage> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  Image.asset('assets/images/codebud_logo.png', height: 180),
+                  Image.asset('lib/assets/images/codebud_logo.png',
+                      height: 180),
                   const SizedBox(height: 24),
-
                   const Text(
                     'Let’s start your coding journey!',
                     style: TextStyle(
@@ -109,7 +109,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 32),
-
                   TextField(
                     controller: usernameController,
                     decoration: const InputDecoration(
@@ -119,7 +118,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 20),
-
                   TextField(
                     controller: passwordController,
                     obscureText: true,
@@ -129,7 +127,6 @@ class _LoginPageState extends State<LoginPage> {
                       prefixIcon: Icon(Icons.lock),
                     ),
                   ),
-
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
@@ -137,9 +134,7 @@ class _LoginPageState extends State<LoginPage> {
                       child: const Text('Forgot password?'),
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
                   SizedBox(
                     width: double.infinity,
                     child: isLoading
@@ -158,11 +153,9 @@ class _LoginPageState extends State<LoginPage> {
                             child: const Text('Log In'),
                           ),
                   ),
-
                   const SizedBox(height: 16),
                   Text(message, style: const TextStyle(color: Colors.red)),
                   const SizedBox(height: 16),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
