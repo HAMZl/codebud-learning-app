@@ -20,11 +20,7 @@ jobs:
       with:
         flutter-version: '3.13.0'  # Make sure this matches your local version
 
-    - name: Disable mobile platforms
-      run: |
-        flutter config --no-enable-android
-        flutter config --no-enable-ios
-        flutter config --no-enable-macos
+    
 
     - name: Disable Flutter Telemetry
       run: flutter --disable-telemetry
