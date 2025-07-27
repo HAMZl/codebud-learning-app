@@ -18,7 +18,16 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.13.0'  # Update if needed
+        flutter-version: '3.13.0'  # Make sure this matches your local version
+
+    - name: Disable mobile platforms
+      run: |
+        flutter config --no-enable-android
+        flutter config --no-enable-ios
+        flutter config --no-enable-macos
+
+    - name: Disable Flutter Telemetry
+      run: flutter --disable-telemetry
 
     - name: Install dependencies
       run: flutter pub get
@@ -35,4 +44,4 @@ jobs:
         firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
         projectId: "${{ secrets.FIREBASE_PROJECT_ID }}"
         channelId: live
-        entryPoint: frontend/flutter_app/  # This is where firebase.json lives (optional)
+        entryPoint: frontend/flutter_app/
