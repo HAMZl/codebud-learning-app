@@ -34,6 +34,8 @@ The connection string is `mongodb://localhost:27017`. Later, use `docker stop co
 
 **Local install:** install MongoDB Community Server from <https://www.mongodb.com/try/download/community>. On macOS you can use `brew install mongodb-community && brew services start mongodb-community`. The connection string is `mongodb://localhost:27017`.
 
+On Windows the installer usually sets MongoDB up as a service, so it may already be running. Check in PowerShell with `Get-Service MongoDB`, and start it with `Start-Service MongoDB` (run as administrator).
+
 **MongoDB Atlas:** create a free cluster and a database user. Under *Network Access*, allow your IP address, then copy the `mongodb+srv://...` connection string.
 
 ## 3. Run the backend
@@ -51,6 +53,17 @@ pip install -r requirements-dev.txt
 cp .env.example .env        # Windows: copy .env.example .env
 ```
 
+> **Already have a `backend/.env`?** Don't overwrite it, especially if it points `MONGO_URI` at a shared or production database. The settings you set in your shell take precedence over `.env`, so you can leave the file alone:
+>
+> ```bash
+> # bash
+> export CODEBUD_ENV=development MONGO_URI=mongodb://localhost:27017
+> # PowerShell
+> $env:CODEBUD_ENV="development"; $env:MONGO_URI="mongodb://localhost:27017"
+> ```
+>
+> Run `seed.py` and `app.py` from that same terminal.
+
 Edit `backend/.env`:
 
 ```ini
@@ -65,7 +78,7 @@ Load the puzzles into the database. This also creates the indexes:
 python ../database/seed.py
 ```
 
-You should see `Puzzles: 30 inserted, 0 updated`. Then start the API:
+You should see `Puzzles: 30 inserted, 0 updated`. If the database already had puzzles, you'll see `0 inserted, 30 updated` instead. Users and progress are never touched. Then start the API:
 
 ```bash
 python app.py                # http://127.0.0.1:5000
@@ -77,7 +90,7 @@ Check that it's up:
 curl http://127.0.0.1:5000/health        # {"status": "ok"}
 ```
 
-> **macOS:** if port 5000 is taken (the AirPlay Receiver uses it), run `PORT=5001 python app.py` and use 5001 below.
+> **Port 5000 taken?** On macOS the AirPlay Receiver uses it. Pick another port, run `PORT=5001 python app.py` (PowerShell: `$env:PORT=5001; python app.py`), and use 5001 below.
 
 ## 4. Run the app
 
@@ -90,6 +103,13 @@ flutter run -d chrome --dart-define=API_BASE_URL=http://127.0.0.1:5000
 ```
 
 Without `--dart-define`, the app talks to the production API.
+
+If you'd rather not have Flutter open a Chrome window, serve the app and open it in any browser yourself:
+
+```bash
+flutter run -d web-server --web-port 8080 --dart-define=API_BASE_URL=http://127.0.0.1:5000
+# then open http://127.0.0.1:8080
+```
 
 Try it out: the landing page loads first. Play a demo puzzle (no account needed), then **Sign up**, log in, and play a level. The stars you earn are saved in your local MongoDB.
 
