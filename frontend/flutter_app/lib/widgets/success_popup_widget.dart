@@ -1,140 +1,149 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
-class SuccessPopup extends StatelessWidget {
-  final String level;
-  final int earnedStars;
-  final VoidCallback onRetry;
-  final VoidCallback onNext;
-  final VoidCallback onCategorySelect;
-  final bool showNextButton;
+import '../services/sound_service.dart';
+import '../theme/app_theme.dart';
 
+class SuccessPopup extends StatefulWidget {
   const SuccessPopup({
     super.key,
-    required this.level,
+    required this.title,
     required this.earnedStars,
+    required this.onHome,
     required this.onRetry,
-    required this.onNext,
-    required this.onCategorySelect,
-    required this.showNextButton,
+    required this.onLevels,
+    this.onNext,
+    this.sounds,
   });
+
+  final String title;
+  final int earnedStars;
+  final VoidCallback onHome;
+  final VoidCallback onRetry;
+  final VoidCallback onLevels;
+
+  /// Null on the last puzzle of a category.
+  final VoidCallback? onNext;
+
+  /// If set, a chime plays as each earned star pops in.
+  final SoundService? sounds;
+
+  @override
+  State<SuccessPopup> createState() => _SuccessPopupState();
+}
+
+class _SuccessPopupState extends State<SuccessPopup> {
+  static const _cheers = [
+    'GREAT JOB!',
+    'WELL DONE!',
+    'YOU DID IT!',
+    'AWESOME!',
+    'FANTASTIC!',
+    'SUPERB!',
+    'NAILED IT!',
+    'EXCELLENT!',
+  ];
+
+  // Picked once, so the text doesn't change on a rebuild.
+  final _cheer = _cheers[Random().nextInt(_cheers.length)];
+  final _timers = <Timer>[];
+
+  static Duration _starDelay(int i) => Duration(milliseconds: 500 + i * 250);
+
+  @override
+  void initState() {
+    super.initState();
+    final sounds = widget.sounds;
+    if (sounds != null) {
+      for (var i = 0; i < widget.earnedStars; i++) {
+        // Chime when each star's pop-in animation lands.
+        _timers.add(Timer(_starDelay(i) * 0.6, () => sounds.play(Sfx.star)));
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final t in _timers) {
+      t.cancel();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(5), // square edges
+        borderRadius: BorderRadius.circular(8),
         side: const BorderSide(color: Colors.black, width: 4),
       ),
       insetPadding: const EdgeInsets.symmetric(horizontal: 40),
       backgroundColor: Colors.white,
-      child: Container(
-        width: 300,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              level,
-              style: const TextStyle(
-                fontFamily: 'serif',
-                fontWeight: FontWeight.w700,
-                fontSize: 25,
-                color: Colors.black,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 340),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                widget.title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 25),
               ),
-            ),
-            const SizedBox(height: 20),
-
-            // Star Row (dynamic)
-            // Animated Star Row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(3, (i) {
-                final isEarned = i < earnedStars;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0, end: isEarned ? 1 : 0),
-                    duration: Duration(
-                      milliseconds: 400 + i * 200,
-                    ), // staggered
-                    builder: (context, value, child) {
-                      return Transform.scale(
-                        scale: value,
-                        child: Icon(
-                          Icons.star,
-                          color: isEarned ? Colors.amber : Colors.grey.shade300,
-                          size: 60,
-                        ),
-                      );
-                    },
-                  ),
-                );
-              }),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Replaced "GREAT JOB!" with random success line
-            Text(
-              _getRandomSuccessLine(),
-              style: const TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w900,
-                color: Colors.black,
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(3, (i) {
+                  final earned = i < widget.earnedStars;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: 1),
+                      curve: Curves.elasticOut,
+                      duration: _starDelay(i),
+                      builder: (context, value, child) => Transform.scale(scale: value, child: child),
+                      child: Icon(Icons.star, color: earned ? AppColors.star : Colors.grey.shade300, size: 60),
+                    ),
+                  );
+                }),
               ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // Buttons
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              alignment: WrapAlignment.center,
-              children: [
-                _popupButton(
-                  icon: Icons.home,
-                  onTap: () => Navigator.pushReplacementNamed(context, '/home'),
-                ),
-                _popupButton(icon: Icons.refresh, onTap: onRetry),
-                if (showNextButton)
-                  _popupButton(icon: Icons.arrow_forward, onTap: onNext),
-                _popupButton(icon: Icons.list, onTap: onCategorySelect),
-              ],
-            ),
-          ],
+              const SizedBox(height: 24),
+              FittedBox(child: Text(_cheer, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900))),
+              const SizedBox(height: 32),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                alignment: WrapAlignment.center,
+                children: [
+                  _button(Icons.home, 'Home', widget.onHome),
+                  _button(Icons.refresh, 'Try again', widget.onRetry),
+                  _button(Icons.grid_view, 'Levels', widget.onLevels),
+                  if (widget.onNext != null) _button(Icons.arrow_forward, 'Next', widget.onNext!),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // Success line logic
-  String _getRandomSuccessLine() {
-    final successLines = [
-      'GREAT JOB!',
-      'WELL DONE!',
-      'YOU DID IT!',
-      'AWESOME!',
-      'FANTASTIC!',
-      'SUPERB!',
-      'NAILED IT!',
-      'EXCELLENT!',
-    ];
-    successLines.shuffle();
-    return successLines.first;
-  }
-
-  Widget _popupButton({required IconData icon, required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFA726),
+  Widget _button(IconData icon, String tooltip, VoidCallback onTap) => Tooltip(
+        message: tooltip,
+        child: Material(
+          color: AppColors.primary,
           borderRadius: BorderRadius.circular(8),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Icon(icon, color: Colors.white, size: 30, semanticLabel: tooltip),
+            ),
+          ),
         ),
-        child: Icon(icon, color: Colors.white, size: 30),
-      ),
-    );
-  }
+      );
 }

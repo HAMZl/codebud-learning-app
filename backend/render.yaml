@@ -1,11 +1,20 @@
 services:
   - type: web
     name: codebud-backend
-    env: python
+    runtime: python
+    rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
+    healthCheckPath: /health
+    # The GitHub Action triggers deploys once tests pass, so pushes don't deploy on their own.
+    autoDeploy: false
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
       - key: MONGO_URI
-        value: YOUR_MONGO_URI
-      - key: SECRET_KEY
-        value: your-secret-key
+        sync: false # set this in the Render dashboard
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      # Optional: restrict CORS, e.g. https://codebud-app.web.app (the default is "*").
+      - key: CORS_ORIGINS
+        sync: false

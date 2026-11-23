@@ -1,19 +1,66 @@
-name: Deploy Flask Backend to Render
+name: Backend
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - 'backend/**'
+      - 'database/**'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'database/**'
+      - '.github/workflows/backend.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  deploy:
+  test:
+    name: Test
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: backend
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Deploy to Render
-        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run tests
+        run: pytest
+
+      - name: Check puzzles.json matches build_puzzles.py
+        run: python ../database/build_puzzles.py --check
+
+  deploy:
+    name: Deploy to Render
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-backend
+      cancel-in-progress: false
+    steps:
+      - name: Trigger Render deploy hook
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "::error::RENDER_DEPLOY_HOOK secret is not set"
+            exit 1
+          fi
+          curl --fail --silent --show-error -X POST "$RENDER_DEPLOY_HOOK"

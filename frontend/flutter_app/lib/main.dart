@@ -1,65 +1,26 @@
 import 'package:flutter/material.dart';
-import 'screens/launch_page.dart';
-import 'screens/login_page.dart';
-import 'screens/signup_page.dart';
-import 'screens/puzzle_selection_page.dart';
-import 'screens/puzzle_gameplay.dart';
-import 'screens/home_page.dart';
 
+import 'routes.dart';
+import 'services/app_scope.dart';
+import 'theme/app_theme.dart';
 
 void main() {
-  runApp(const CodeBudApp());
+  runApp(AppScope.production(child: const CodeBudApp()));
 }
 
 class CodeBudApp extends StatelessWidget {
-  const CodeBudApp({super.key});
+  const CodeBudApp({super.key, this.initialRoute = Routes.launch});
+
+  final String initialRoute;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'CodeBud',
-      theme: ThemeData(primarySwatch: Colors.deepPurple),
-      initialRoute: '/',
-
-      // Static routes
-      routes: {
-        '/': (context) => const LaunchPage(),
-        '/home': (context) => const HomePage(),
-        '/login': (context) => const LoginPage(),
-        '/signup': (context) => const SignUpPage(),
-        '/puzzle': (context) => const PuzzleScreen(),
-         },
-
-      // Dynamic routes for PuzzleSelectionPage with title + category
-      onGenerateRoute: (settings) {
-        switch (settings.name) {
-          case '/sequences':
-            return MaterialPageRoute(
-              builder: (_) => const PuzzleSelectionPage(
-                title: 'Sequence Puzzles',
-                category: 'sequence',
-              ),
-            );
-          case '/loops':
-            return MaterialPageRoute(
-              builder: (_) => const PuzzleSelectionPage(
-                title: 'Loop Puzzles',
-                category: 'loop',
-              ),
-            );
-          case '/conditionals':
-            return MaterialPageRoute(
-              builder: (_) => const PuzzleSelectionPage(
-                title: 'Conditional Puzzles',
-                category: 'conditional',
-              ),
-            );
-        }
-        return null;
-      },
+      theme: AppTheme.light(),
+      initialRoute: initialRoute,
+      onGenerateRoute: Routes.onGenerateRoute,
     );
   }
 }
-
-//trigger deployment

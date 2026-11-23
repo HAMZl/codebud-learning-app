@@ -1,41 +1,110 @@
-name: Deploy Flutter Web to Firebase
+name: Frontend
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - 'frontend/flutter_app/**'
+      - 'database/puzzles.json'
+      - '.github/workflows/frontend.yml'
+  pull_request:
+    paths:
+      - 'frontend/flutter_app/**'
+      - 'database/puzzles.json'
+      - '.github/workflows/frontend.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  FLUTTER_VERSION: '3.32.1' # keep in step with the version used locally (see pubspec.lock)
+  # Set the API_BASE_URL repository variable to point builds at another backend.
+  API_BASE_URL: ${{ vars.API_BASE_URL || 'https://codebud-learning-app.onrender.com' }}
 
 jobs:
-  build-and-deploy:
+  build:
+    name: Analyze, test and build
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: frontend/flutter_app
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.13.0'  # Match your local version
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
 
-    - name: Disable Flutter Telemetry
-      run: flutter --disable-telemetry
+      - run: flutter --disable-analytics
+      - run: flutter pub get
 
-    - name: Install dependencies
-      run: flutter pub get
-      working-directory: frontend/flutter_app/
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test
 
-    - name: Build Flutter Web
-      run: flutter build web --no-tree-shake-icons
-      working-directory: frontend/flutter_app/
+      - name: Analyze
+        run: flutter analyze
 
-    - name: Deploy to Firebase Hosting
-      uses: FirebaseExtended/action-hosting-deploy@v0
-      with:
-        repoToken: "${{ secrets.GITHUB_TOKEN }}"
-        firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
-        projectId: "${{ secrets.FIREBASE_PROJECT_ID }}"
-        channelId: live
-        entryPoint: frontend/flutter_app/
+      - name: Test
+        run: flutter test
+
+      - name: Build web
+        run: flutter build web --release --dart-define=API_BASE_URL=$API_BASE_URL
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: frontend/flutter_app/build/web
+          retention-days: 7
+
+  preview:
+    name: Deploy PR preview
+    needs: build
+    # Fork PRs can't read secrets, so only preview branches from this repository.
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: frontend/flutter_app/build/web
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+          entryPoint: frontend/flutter_app
+          expires: 7d
+
+  deploy:
+    name: Deploy to Firebase Hosting
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-frontend
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: frontend/flutter_app/build/web
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+          entryPoint: frontend/flutter_app
+          channelId: live

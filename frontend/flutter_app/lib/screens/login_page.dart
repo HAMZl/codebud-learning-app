@@ -1,179 +1,129 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../routes.dart';
+import '../services/api_client.dart';
+import '../services/app_scope.dart';
+import '../theme/app_theme.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({super.key, this.message});
+
+  /// Optional message to show when the page opens, e.g. after signing up.
+  final String? message;
+
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final storage = FlutterSecureStorage();
-
-  String message = '';
-  bool isLoading = false;
+  final _formKey = GlobalKey<FormState>();
+  final _username = TextEditingController();
+  final _password = TextEditingController();
+  bool _loading = false;
+  String? _error;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final String? successMsg =
-        ModalRoute.of(context)?.settings.arguments as String?;
-    if (successMsg != null && successMsg.isNotEmpty) {
+  void initState() {
+    super.initState();
+    final msg = widget.message;
+    if (msg != null && msg.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(successMsg), backgroundColor: Colors.green),
-        );
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.green));
       });
     }
   }
 
-  Future<void> handleLogin() async {
+  @override
+  void dispose() {
+    _username.dispose();
+    _password.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
     setState(() {
-      isLoading = true;
-      message = '';
+      _loading = true;
+      _error = null;
     });
-
-    final body = {
-      "username": usernameController.text.trim(),
-      "password": passwordController.text,
-    };
-
     try {
-      final response = await http.post(
-        Uri.parse('https://codebud-learning-app.onrender.com/login'),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(body),
-      );
+      final welcome = await AppScope.of(context).auth.login(_username.text.trim(), _password.text);
       if (!mounted) return;
-
-      final data = jsonDecode(response.body);
-      setState(() => isLoading = false);
-
-      if (response.statusCode == 200 && data['success'] == true) {
-        final token = data['token'];
-
-        // 🔒 Save JWT token securely
-        await storage.write(key: 'jwt_token', value: token);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(data['message'] ?? 'Login successful!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pushReplacementNamed(context, '/home');
-      } else {
-        setState(() => message = data['message'] ?? 'Login failed!');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message), backgroundColor: Colors.red),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        isLoading = false;
-        message = 'Network error. Please try again.';
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.red),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(welcome), backgroundColor: Colors.green));
+      Navigator.pushNamedAndRemoveUntil(context, Routes.home, (_) => false);
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryColor = Color(0xFFFFA726); // Bright orange
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      appBar: AppBar(),
       body: SafeArea(
         child: Center(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Image.asset('lib/assets/images/codebud_logo.png',
-                      height: 180),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Let’s start your coding journey!',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    Image.asset('lib/assets/images/codebud_logo.png', height: 160),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Let’s start your coding journey!',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
                     ),
-                  ),
-                  const SizedBox(height: 32),
-                  TextField(
-                    controller: usernameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Username *',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.person),
+                    const SizedBox(height: 32),
+                    TextFormField(
+                      controller: _username,
+                      autofillHints: const [AutofillHints.username],
+                      textInputAction: TextInputAction.next,
+                      decoration: const InputDecoration(labelText: 'Username', prefixIcon: Icon(Icons.person)),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Please enter your username' : null,
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    controller: passwordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Password *',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.lock),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: _password,
+                      obscureText: true,
+                      autofillHints: const [AutofillHints.password],
+                      onFieldSubmitted: (_) => _submit(),
+                      decoration: const InputDecoration(labelText: 'Password', prefixIcon: Icon(Icons.lock)),
+                      validator: (v) => (v == null || v.isEmpty) ? 'Please enter your password' : null,
                     ),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {},
-                      child: const Text('Forgot password?'),
+                    const SizedBox(height: 24),
+                    if (_error != null) ...[
+                      Text(_error!, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 16),
+                    ],
+                    SizedBox(
+                      width: double.infinity,
+                      child: _loading
+                          ? const Center(child: CircularProgressIndicator())
+                          : ElevatedButton(onPressed: _submit, child: const Text('Log In')),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryColor,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              textStyle: const TextStyle(fontSize: 18),
-                            ),
-                            onPressed: handleLogin,
-                            child: const Text('Log In'),
-                          ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(message, style: const TextStyle(color: Colors.red)),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("Don't have an account? "),
-                      TextButton(
-                        onPressed: () =>
-                            Navigator.pushNamed(context, '/signup'),
-                        child: const Text(
-                          'Sign up',
-                          style: TextStyle(
-                            color: primaryColor,
-                            fontWeight: FontWeight.bold,
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("Don't have an account? "),
+                        TextButton(
+                          onPressed: () => Navigator.pushReplacementNamed(context, Routes.signup),
+                          child: const Text(
+                            'Sign up',
+                            style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

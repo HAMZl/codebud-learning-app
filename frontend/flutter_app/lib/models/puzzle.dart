@@ -1,45 +1,88 @@
 import 'point.dart';
 
+/// A full puzzle, as returned by `GET /api/puzzle/<id>`.
 class Puzzle {
-  final String id, title, category;
+  final String id;
+  final String title;
+  final String category;
   final int gridSize;
-  final Point start, goal;
+  final Point start;
+  final Point goal;
   final List<Point> obstacles;
-  final List<int> starMoves;
 
-  Puzzle({
+  /// Number of blocks that earns 3 stars.
+  final int par;
+
+  /// The next puzzle in the same category, if there is one.
+  final PuzzleRef? next;
+
+  const Puzzle({
     required this.id,
     required this.title,
+    required this.category,
     required this.gridSize,
     required this.start,
     required this.goal,
     required this.obstacles,
-    required this.starMoves,
-    required this.category,
+    required this.par,
+    this.next,
   });
 
   factory Puzzle.fromJson(Map<String, dynamic> j) => Puzzle(
-    id: j['id'],
-    title: j['title'],
-    gridSize: j['gridSize'],
-    start: Point.fromList(j['start']),
-    goal: Point.fromList(j['goal']),
-    obstacles: (j['obstacles'] as List).map((e) => Point.fromList(e)).toList(),
-    starMoves: List<int>.from(j['starMoves'] ?? [6, 8, 10]),
-    category: j['category'],
-  );
+        id: j['id'] as String,
+        title: (j['title'] as String?) ?? 'Puzzle',
+        category: j['category'] as String,
+        gridSize: j['gridSize'] as int,
+        start: Point.fromList(j['start'] as List),
+        goal: Point.fromList(j['goal'] as List),
+        obstacles: (j['obstacles'] as List? ?? const []).map((e) => Point.fromList(e as List)).toList(),
+        par: (j['par'] as int?) ?? 6,
+        next: j['next'] is Map<String, dynamic> ? PuzzleRef.fromJson(j['next'] as Map<String, dynamic>) : null,
+      );
+
+  bool isBlocked(Point p) => p.row < 0 || p.col < 0 || p.row >= gridSize || p.col >= gridSize || obstacles.contains(p);
 }
 
-class CommandItem {
-  final String type;
-  int repeatCount;
-  List<CommandItem> nested;
-  String? condition;
+class PuzzleRef {
+  final String id;
+  final String title;
+  const PuzzleRef({required this.id, required this.title});
 
-  CommandItem({
-    required this.type,
-    this.repeatCount = 1,
-    this.nested = const [],
-    this.condition,
-  });
+  factory PuzzleRef.fromJson(Map<String, dynamic> j) =>
+      PuzzleRef(id: j['id'] as String, title: (j['title'] as String?) ?? '');
+}
+
+/// A puzzle in a category list, with the player's best result.
+class PuzzleSummary {
+  final String id;
+  final String title;
+  final int bestStars;
+
+  const PuzzleSummary({required this.id, required this.title, required this.bestStars});
+
+  bool get completed => bestStars > 0;
+
+  factory PuzzleSummary.fromJson(Map<String, dynamic> j) {
+    var stars = j['best_stars'] as int?;
+    // Older backends only send a list of colours.
+    stars ??= (j['stars'] as List? ?? const []).where((s) => s == 'yellow').length;
+    return PuzzleSummary(id: j['id'] as String, title: (j['title'] as String?) ?? '', bestStars: stars);
+  }
+}
+
+/// Stars earned per category, for the home screen.
+class CategoryProgress {
+  final int total;
+  final int completed;
+  final int stars;
+  final int maxStars;
+
+  const CategoryProgress({this.total = 0, this.completed = 0, this.stars = 0, this.maxStars = 0});
+
+  factory CategoryProgress.fromJson(Map<String, dynamic> j) => CategoryProgress(
+        total: j['total'] as int? ?? 0,
+        completed: j['completed'] as int? ?? 0,
+        stars: j['stars'] as int? ?? 0,
+        maxStars: j['max_stars'] as int? ?? 0,
+      );
 }
