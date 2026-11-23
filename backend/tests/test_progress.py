@@ -61,3 +61,25 @@ def test_progress_summary(client, auth_header):
     cats = res.json["categories"]
     assert cats["sequence"] == {"total": 10, "completed": 2, "stars": 5, "max_stars": 30}
     assert cats["loop"]["completed"] == 0
+
+
+def test_reset_one_category(client, auth_header, db):
+    post_progress(client, auth_header, puzzle_id="seq1", stars=3)
+    post_progress(client, auth_header, puzzle_id="loop1", stars=3)
+
+    res = client.delete("/api/progress?category=sequence", headers=auth_header)
+    assert res.status_code == 200
+    assert res.json["removed"] == 1
+    assert [p["puzzle_id"] for p in db.progress.find()] == ["loop1"]
+
+
+def test_reset_all_progress_only_affects_this_player(client, auth_header, db):
+    db.progress.insert_one({"username": "someone-else", "puzzle_id": "seq1", "stars": 3})
+    post_progress(client, auth_header, puzzle_id="seq1", stars=3)
+
+    assert client.delete("/api/progress", headers=auth_header).json["removed"] == 1
+    assert db.progress.count_documents({"username": "someone-else"}) == 1
+
+
+def test_reset_unknown_category(client, auth_header):
+    assert client.delete("/api/progress?category=nope", headers=auth_header).status_code == 404

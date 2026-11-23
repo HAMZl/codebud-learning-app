@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from pymongo import ReturnDocument
 
@@ -76,3 +76,19 @@ def progress_summary():
             totals[category]["stars"] += row.get("stars", 0)
 
     return jsonify({"categories": totals})
+
+
+@bp.delete("/progress")
+@jwt_required()
+def reset_progress():
+    """Erase the player's progress, either everything or one ``?category=``."""
+    db = get_db()
+    query: dict = {"username": get_jwt_identity()}
+    category = request.args.get("category")
+    if category:
+        if category not in CATEGORIES:
+            raise ApiError(f"Unknown category: {category}", code=404)
+        ids = [p["id"] for p in db[PUZZLES].find({"category": category}, {"_id": 0, "id": 1})]
+        query["puzzle_id"] = {"$in": ids}
+    removed = db[PROGRESS].delete_many(query).deleted_count
+    return jsonify({"success": True, "message": "Progress reset.", "removed": removed})

@@ -2,6 +2,12 @@
 
 CodeBud is an educational game designed for preschoolers aged 4 to 7 to explore the fundamentals of programming and algorithmic thinking through engaging, visual puzzles. Built using Flutter (frontend) and Flask with MongoDB (backend), CodeBud avoids all text, making it accessible to non-readers by relying solely on colorful drag-and-drop blocks, animations, and sound feedback.
 
+![CodeBud landing page](frontend/flutter_app/assets/screenshots/landing.png)
+
+| Home | Levels | Puzzle | Success | Settings |
+|---|---|---|---|---|
+| ![Home](frontend/flutter_app/assets/screenshots/home.png) | ![Levels](frontend/flutter_app/assets/screenshots/levels.png) | ![Puzzle](frontend/flutter_app/assets/screenshots/puzzle.png) | ![Success](frontend/flutter_app/assets/screenshots/success.png) | ![Settings](frontend/flutter_app/assets/screenshots/settings.png) |
+
 ---
 
 ## 🌟 Product Vision
@@ -143,6 +149,26 @@ The **game rules exist twice**: once in Dart, so the robot animates instantly wi
 
 The sounds are synthesized by `frontend/flutter_app/tool/generate_sounds.py`, not downloaded, so there are no licensing concerns. Edit the script and run it to regenerate `assets/sounds/*.wav`. There is a sound for adding a block, each robot step, bumping into a wall or rock, a gentle "try again", and a success jingle with claps, and each earned star chimes. Sound plays through `SoundService`, which never throws, so a missing sound can't break the game. The mute setting is remembered between sessions.
 
+### Landing page
+
+Visitors who aren't logged in see a landing page at `/`. It explains the three ideas with samples drawn by the real game widgets, includes a gallery of screenshots, and has a **Try it now** section where the three demo puzzles in `lib/data/demo_puzzles.dart` can be played without an account. The demo uses the same `PuzzlePlayground` widget as the real puzzle screen, and a test checks that the demo puzzles still match `database/puzzles.json`.
+
+### Settings
+
+- **Settings** (open to kids): sound effects on/off, volume, robot speed (slow, normal or fast), hints on/off, and restore defaults. These are stored on the device with `shared_preferences`.
+- **Parent settings**, behind a grown-ups-only multiplication question: edit the child profile, see per-category progress and reset it, change the password, and log out.
+
+### Screenshots
+
+The images above are rendered by the app itself, not captured by hand. `test_screenshots/` pumps the real screens against a fake backend and writes them to `assets/screenshots/`, which the landing page also uses. Regenerate them after UI changes:
+
+```bash
+cd frontend/flutter_app
+flutter test test_screenshots --update-goldens
+```
+
+The generator isn't part of the normal test run, because pixels differ slightly between operating systems.
+
 ### Rules
 
 The run ends as soon as the robot reaches the star. Stars reward short programs, and every block counts, including nested ones. A program at or under the level's *par* earns ⭐⭐⭐, up to par + 2 earns ⭐⭐, and any other solution earns ⭐. Finishing a level never earns zero stars. Each level unlocks when the one before it is finished.
@@ -153,12 +179,15 @@ The run ends as soon as the robot reaches the star. Stars reward short programs,
 |---|---|---|---|
 | POST | `/signup` | – | Create a parent + child account |
 | POST | `/login` | – | Returns a JWT (valid for 7 days) |
-| GET | `/api/me` | JWT | Child's name and age |
+| GET | `/api/me` | JWT | Child and parent profile |
+| PATCH | `/api/me` | JWT | Update child name/age, parent name, email |
+| POST | `/api/me/password` | JWT | Change password (requires the current one) |
 | GET | `/api/puzzles/<category>` | JWT | Levels in a category with best stars |
 | GET | `/api/puzzle/<id>` | – | One level, plus a link to the next one (no solution) |
 | POST | `/api/validate_sequence` | – | Run a program and get the result and a hint |
 | POST | `/api/progress` | JWT | Save a solved program; the server computes the stars |
 | GET | `/api/progress` | JWT | Per-category star totals |
+| DELETE | `/api/progress[?category=]` | JWT | Reset progress, all or one category |
 | GET | `/health` | – | Health check for Render |
 
 ---

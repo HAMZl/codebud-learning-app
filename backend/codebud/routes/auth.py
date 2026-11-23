@@ -81,16 +81,65 @@ def login():
     ), 200
 
 
-@bp.get("/api/me")
-@jwt_required()
-def me():
+def _current_user() -> dict:
     user = get_db()[USERS].find_one({"username": get_jwt_identity()})
     if not user:
         raise ApiError("Account not found.", code=404)
-    return jsonify(
-        {
-            "username": user["username"],
-            "child_name": user["child_name"],
-            "child_age": user.get("child_age"),
-        }
-    )
+    return user
+
+
+def _profile(user: dict) -> dict:
+    return {
+        "username": user["username"],
+        "child_name": user["child_name"],
+        "child_age": user.get("child_age"),
+        "parent_name": user.get("parent_name"),
+        "email": user.get("email"),
+    }
+
+
+@bp.get("/api/me")
+@jwt_required()
+def me():
+    return jsonify(_profile(_current_user()))
+
+
+@bp.patch("/api/me")
+@jwt_required()
+def update_me():
+    """Update profile fields. Only the fields that are sent are changed."""
+    data = json_body()
+    user = _current_user()
+    changes: dict = {}
+    if "child_name" in data:
+        changes["child_name"] = required_str(data, "child_name", "Child name")
+    if "child_age" in data:
+        changes["child_age"] = int_in_range(data["child_age"], "child_age", "Child age", 3, 12)
+    if "parent_name" in data:
+        changes["parent_name"] = required_str(data, "parent_name", "Parent name")
+    if "email" in data:
+        email = required_str(data, "email", "Email", max_len=254).lower()
+        if not EMAIL_RE.match(email):
+            raise ApiError("Please enter a valid email address.", field="email")
+        changes["email"] = email
+    if not changes:
+        raise ApiError("Nothing to update.")
+
+    get_db()[USERS].update_one({"_id": user["_id"]}, {"$set": changes})
+    return jsonify({"success": True, "message": "Profile updated.", **_profile({**user, **changes})})
+
+
+@bp.post("/api/me/password")
+@jwt_required()
+def change_password():
+    data = json_body()
+    user = _current_user()
+    current = data.get("current_password")
+    new = data.get("new_password")
+    if not isinstance(current, str) or not check_password_hash(user["password"], current):
+        raise ApiError("Current password is incorrect.", code=403, field="current_password")
+    if not isinstance(new, str) or len(new) < MIN_PASSWORD_LENGTH:
+        raise ApiError(f"Password must be at least {MIN_PASSWORD_LENGTH} characters.", field="new_password")
+
+    get_db()[USERS].update_one({"_id": user["_id"]}, {"$set": {"password": generate_password_hash(new)}})
+    return jsonify({"success": True, "message": "Password changed."})

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../routes.dart';
 import '../services/app_scope.dart';
+import 'landing_page.dart';
 
+/// The `/` route. Logged-in players go straight to the home screen, and everyone else sees the landing page.
 class LaunchPage extends StatefulWidget {
   const LaunchPage({super.key});
 
@@ -31,50 +33,7 @@ class _LaunchPageState extends State<LaunchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32.0),
-              child: Column(
-                children: [
-                  const Spacer(flex: 2),
-                  Image.asset('lib/assets/images/codebud_logo.png', height: 240),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'A Visual Coding Adventure for Kids',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                  const Spacer(flex: 3),
-                  if (_checking)
-                    const CircularProgressIndicator()
-                  else ...[
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pushNamed(context, Routes.login),
-                        child: const Text('Log In'),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.pushNamed(context, Routes.signup),
-                        child: const Text('Sign up'),
-                      ),
-                    ),
-                  ],
-                  const Spacer(flex: 2),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+    if (_checking) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    return const LandingPage();
   }
 }

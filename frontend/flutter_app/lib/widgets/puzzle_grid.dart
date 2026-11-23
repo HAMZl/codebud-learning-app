@@ -15,6 +15,8 @@ class PuzzleGrid extends StatelessWidget {
     required this.blocksUsed,
     required this.starPreview,
     this.stepDuration = const Duration(milliseconds: 300),
+    this.maxBoardSize = 420,
+    this.showHeader = true,
   });
 
   final Puzzle puzzle;
@@ -25,20 +27,29 @@ class PuzzleGrid extends StatelessWidget {
   final int starPreview;
   final Duration stepDuration;
 
+  /// The largest the board may grow, in logical pixels.
+  final double maxBoardSize;
+
+  /// Show the star preview and block count above the board.
+  final bool showHeader;
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       // Fit small phones while capping the size on tablets and desktop.
-      final available = math.min(constraints.maxWidth - 40, 420.0);
-      final cell = (available / puzzle.gridSize).clamp(36.0, 72.0);
+      // Leave room for the outer padding (2 x 16), the board padding (2 x 4) and the border (2 x 2).
+      final available = math.min(constraints.maxWidth - 44, maxBoardSize);
+      final cell = (available / puzzle.gridSize).clamp(16.0, 72.0);
       final boardSize = cell * puzzle.gridSize;
 
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         child: Column(
           children: [
-            SizedBox(width: boardSize + 12, child: _header()),
-            const SizedBox(height: 8),
+            if (showHeader) ...[
+              SizedBox(width: boardSize + 12, child: _header()),
+              const SizedBox(height: 8),
+            ],
             Container(
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.black, width: 2),
