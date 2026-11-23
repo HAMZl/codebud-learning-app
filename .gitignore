@@ -11,5 +11,8 @@ venv/
 .pytest_cache/
 .env
 
+# Logs
+*.log
+
 # Flutter build output (CI builds and deploys it)
 frontend/flutter_app/build/

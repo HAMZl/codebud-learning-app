@@ -1,6 +1,8 @@
-# CodeBud - A Visual Coding Adventure for Kids
+# CodeBud: a visual coding adventure for kids
 
-CodeBud is an educational game designed for preschoolers aged 4 to 7 to explore the fundamentals of programming and algorithmic thinking through engaging, visual puzzles. Built using Flutter (frontend) and Flask with MongoDB (backend), CodeBud avoids all text, making it accessible to non-readers by relying solely on colorful drag-and-drop blocks, animations, and sound feedback.
+CodeBud teaches children aged 4–7 the basics of programming (**sequencing, loops and if-then logic**) through picture-block puzzles. Kids drag arrow, loop and if blocks into a program, press play, and watch a friendly robot try to reach the star. Children don't need to read anything. Everything is icons, colour, animation and sound.
+
+**Stack:** a Flutter app (web, iOS, macOS, Windows, Linux), a Flask API, and MongoDB.
 
 ![CodeBud landing page](frontend/flutter_app/assets/screenshots/landing.png)
 
@@ -8,251 +10,114 @@ CodeBud is an educational game designed for preschoolers aged 4 to 7 to explore 
 |---|---|---|---|---|
 | ![Home](frontend/flutter_app/assets/screenshots/home.png) | ![Levels](frontend/flutter_app/assets/screenshots/levels.png) | ![Puzzle](frontend/flutter_app/assets/screenshots/puzzle.png) | ![Success](frontend/flutter_app/assets/screenshots/success.png) | ![Settings](frontend/flutter_app/assets/screenshots/settings.png) |
 
----
+## Features
 
-## 🌟 Product Vision
+- **30 levels in three categories:** Sequencing, Loops and Conditionals. Levels unlock one at a time.
+- **Drag-and-drop or tap-to-add blocks**, with loops (repeat 2–10 times) and if-blocks (look for a rock, an empty cell or the star in any direction).
+- **Stars for short programs:** finishing always earns at least one star, and hints explain what went wrong.
+- **Sound effects** for every tap, step and bump, plus a celebration with claps and star chimes.
+- **Landing page** with a playable demo, so visitors can try it without an account.
+- **Settings:** sound, volume, robot speed and hints. A **parent area** behind a grown-ups-only check covers the profile, progress reset, password and log out.
 
-**FOR** preschool children aged 4 to 7,  
-**WHO** are just beginning to explore thinking in sequences and logic,  
-**THE** CodeBud App is an educational app  
-**THAT** helps develop programming and algorithmic thinking skills through interactive, visual puzzles.  
-**UNLIKE** traditional text-based tools,  
-**OUR PRODUCT** provides a completely text-free, drag-and-drop interface with friendly animations and sounds, making coding concepts like sequencing, loops, and conditionals intuitive and fun for early learners.
+## Quick start
 
----
-
-## 🧰 Tech Stack
-
-- **Frontend:** Flutter
-- **Backend:** Python (Flask)
-- **Database:** MongoDB
-- **Prototyping Tools:** Visily
-
----
-
-## 🧒 User Personas
-
-1. **Ella (Age 5)**: Loves bright visuals and reacts to fun sounds. She learns through repetition and needs simple instructions.
-2. **Liam (Age 6)**: Curious and loves solving puzzles. Can understand logical relationships with visual cues.
-3. **Sophia (Age 4)**: New to digital interfaces. Needs intuitive design to avoid frustration and promote interaction.
-
----
-
-## ✨ Core Features
-
-### 1. Drag-and-Drop Command Blocks
-- Visual icons like arrows and turns instead of text.
-- Children drag blocks onto a sequence strip to form a "code".
-- Icons are large, colorful, and animated.
-
-### 2. Puzzle-Based Levels
-- Guide CodeBud to reach the star.
-- Levels gradually introduce complexity: straight paths → turns → obstacles → logic.
-- Each level has a grid-based layout with defined start and goal positions.
-
-### 3. Loops (Simplified)
-- Introduce visual loop blocks like “Repeat X times”.
-- Children can drag commands into the loop block and set a number of iterations visually.
-
-### 4. If-Then Logic (Visual Conditionals)
-- Introduces basic logic: e.g., `If rock ahead → turn right`.
-- Uses icons for conditions and actions, eliminating any reading requirement.
-- Teaches logical branching in a visual and intuitive way.
-
-### 5. Interactive Feedback and Rewards
-- Sound effects like claps and cheerful tones when the player succeeds.
-- Animations such as CodeBud jumping or stars shining.
-- Star-based reward system (1 to 3 stars based on move efficiency).
-
----
-
-## 🧩 User Stories
-
-### Story 1: Puzzle Navigation and Goal Completion
-**As a** child,  
-**I want to** guide CodeBud through puzzles using drag-and-drop blocks,  
-**So that** I can reach the goal and feel a sense of achievement.  
-✅ Acceptance Criteria:
-- Grid-based level appears.
-- CodeBud follows command sequence.
-- Game detects goal reached and shows animation.
-
-### Story 2: Looping Movement
-**As a** player,  
-**I want to** use loops to repeat actions,  
-**So that** I can solve puzzles more efficiently.  
-✅ Acceptance Criteria:
-- Drag loop block into sequence.
-- Insert commands inside the loop visually.
-- Choose iteration count using visual counter.
-
-### Story 3: Obstacle Handling with Conditionals
-**As a** child,  
-**I want to** make CodeBud avoid obstacles using "if-then" blocks,  
-**So that** I can solve more complex levels.  
-✅ Acceptance Criteria:
-- Visual logic block appears in command list.
-- Condition triggers when CodeBud detects obstacle.
-- Appropriate action is executed (e.g., turn or jump).
-
-### Story 4: Animated Feedback and Stars
-**As a** young learner,  
-**I want to** receive stars and hear sounds when I solve a puzzle,  
-**So that** I feel rewarded and want to keep playing.  
-✅ Acceptance Criteria:
-- Puzzle completion shows stars based on move efficiency.
-- Cheerful animations and sounds play upon success.
-
----
-
-## 📐 Design Guidelines
-
-- **No Text**: All instructions and gameplay use images, animations, and sound.
-- **Touch-Friendly UI**: Large buttons and drag areas to match motor skills of children.
-- **Progressive Difficulty**: Introduce concepts gradually with increasing challenge.
-- **Safe & Encouraging**: No failure penalties. Focus is on trial-and-error learning.
-
----
-
-## 🏗️ Architecture
-
-```
-frontend/flutter_app/        Flutter app (web build is deployed to Firebase Hosting)
-  lib/config/                build-time config (API_BASE_URL)
-  lib/services/              ApiClient, AuthService, PuzzleService, token storage, AppScope
-  lib/game/engine.dart       game rules: runs a program and returns the path, result and stars
-  lib/models/                Puzzle, CommandItem (blocks), categories
-  lib/screens/, lib/widgets/ UI only, with no HTTP calls
-backend/                     Flask API (deployed to Render)
-  app.py                     WSGI entry point (gunicorn app:app)
-  codebud/__init__.py        create_app() factory
-  codebud/engine.py          the same game rules as engine.dart
-  codebud/routes/            auth, puzzles, progress blueprints
-  tests/                     pytest suite (in-memory MongoDB via mongomock)
-database/
-  build_puzzles.py           source of truth for levels (ASCII maps + reference solutions)
-  puzzles.json               generated from build_puzzles.py
-  seed.py                    loads puzzles.json into MongoDB and creates indexes
-```
-
-The **game rules exist twice**: once in Dart, so the robot animates instantly with no round trip, and once in Python, so the server can check results. When a child solves a level, the app sends the *program* rather than a star count. The server replays it and awards the stars itself. Tests on both sides run every shipped puzzle's reference solution, so the two engines can't drift apart.
-
-### Game rules
-
-| Block | Meaning |
-|---|---|
-| ⬆️ ⬇️ ⬅️ ➡️ | Move one cell. Hitting the grid edge or a rock ends the run with a hint. |
-| 🔁 Loop | Repeat the blocks inside 2–10 times. A loop can contain moves and If blocks. |
-| ❓ If | Run the blocks inside only when the next cell in a direction is a rock (the edge counts), empty, or the star. |
-
-### Sound effects
-
-The sounds are synthesized by `frontend/flutter_app/tool/generate_sounds.py`, not downloaded, so there are no licensing concerns. Edit the script and run it to regenerate `assets/sounds/*.wav`. There is a sound for adding a block, each robot step, bumping into a wall or rock, a gentle "try again", and a success jingle with claps, and each earned star chimes. Sound plays through `SoundService`, which never throws, so a missing sound can't break the game. The mute setting is remembered between sessions.
-
-### Landing page
-
-Visitors who aren't logged in see a landing page at `/`. It explains the three ideas with samples drawn by the real game widgets, includes a gallery of screenshots, and has a **Try it now** section where the three demo puzzles in `lib/data/demo_puzzles.dart` can be played without an account. The demo uses the same `PuzzlePlayground` widget as the real puzzle screen, and a test checks that the demo puzzles still match `database/puzzles.json`.
-
-### Settings
-
-- **Settings** (open to kids): sound effects on/off, volume, robot speed (slow, normal or fast), hints on/off, and restore defaults. These are stored on the device with `shared_preferences`.
-- **Parent settings**, behind a grown-ups-only multiplication question: edit the child profile, see per-category progress and reset it, change the password, and log out.
-
-### Screenshots
-
-The images above are rendered by the app itself, not captured by hand. `test_screenshots/` pumps the real screens against a fake backend and writes them to `assets/screenshots/`, which the landing page also uses. Regenerate them after UI changes:
+You need Python 3.10+, Flutter 3.32 and MongoDB. Docker is the quickest way to get MongoDB.
 
 ```bash
-cd frontend/flutter_app
-flutter test test_screenshots --update-goldens
-```
+# 1. Database
+docker run -d --name codebud-mongo -p 27017:27017 mongo:7
 
-The generator isn't part of the normal test run, because pixels differ slightly between operating systems.
-
-### Rules
-
-The run ends as soon as the robot reaches the star. Stars reward short programs, and every block counts, including nested ones. A program at or under the level's *par* earns ⭐⭐⭐, up to par + 2 earns ⭐⭐, and any other solution earns ⭐. Finishing a level never earns zero stars. Each level unlocks when the one before it is finished.
-
-### API
-
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| POST | `/signup` | – | Create a parent + child account |
-| POST | `/login` | – | Returns a JWT (valid for 7 days) |
-| GET | `/api/me` | JWT | Child and parent profile |
-| PATCH | `/api/me` | JWT | Update child name/age, parent name, email |
-| POST | `/api/me/password` | JWT | Change password (requires the current one) |
-| GET | `/api/puzzles/<category>` | JWT | Levels in a category with best stars |
-| GET | `/api/puzzle/<id>` | – | One level, plus a link to the next one (no solution) |
-| POST | `/api/validate_sequence` | – | Run a program and get the result and a hint |
-| POST | `/api/progress` | JWT | Save a solved program; the server computes the stars |
-| GET | `/api/progress` | JWT | Per-category star totals |
-| DELETE | `/api/progress[?category=]` | JWT | Reset progress, all or one category |
-| GET | `/health` | – | Health check for Render |
-
----
-
-## 🛠️ Development
-
-**Backend** (Python 3.10+):
-
-```bash
+# 2. API  →  http://127.0.0.1:5000
 cd backend
-python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\Activate.ps1
 pip install -r requirements-dev.txt
-cp .env.example .env                                 # then fill in MONGO_URI
-pytest
-python app.py                                        # http://127.0.0.1:5000
-```
+cp .env.example .env                                 # has CODEBUD_ENV=development and a local MONGO_URI
+python ../database/seed.py                           # load the 30 puzzles
+python app.py
 
-**Database**: edit levels in `database/build_puzzles.py`, then:
-
-```bash
-python database/build_puzzles.py      # validates every level and regenerates puzzles.json
-python database/seed.py               # upserts puzzles into MONGO_URI and creates indexes
-```
-
-**Frontend** (Flutter 3.32):
-
-```bash
+# 3. App (in a second terminal)
 cd frontend/flutter_app
 flutter pub get
-flutter test
 flutter run -d chrome --dart-define=API_BASE_URL=http://127.0.0.1:5000
 ```
 
-## 🚀 CI/CD
+**[docs/LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md)** has the full guide: Atlas or a local MongoDB instead of Docker, VS Code launch configs, running the tests, common tasks and troubleshooting.
 
-| Workflow | On pull requests | On push to `main` |
-|---|---|---|
-| `backend.yml` | pytest and a check that `puzzles.json` is up to date | the same, then triggers the Render deploy hook |
-| `frontend.yml` | format check, `flutter analyze`, `flutter test`, web build, and a Firebase preview channel | the same, then deploys to the live Firebase channel |
+## Deployment
 
-Deploys run only after the checks pass. Required secrets: `RENDER_DEPLOY_HOOK`, `FIREBASE_SERVICE_ACCOUNT`, `FIREBASE_PROJECT_ID`. The optional repository variable `API_BASE_URL` points the web build at a different backend. On Render, set `MONGO_URI` and `JWT_SECRET_KEY`, and turn off Auto-Deploy so that only the workflow deploys.
+The database runs on MongoDB Atlas, the API on Render, and the web app on Firebase Hosting. After checks pass on `main`, GitHub Actions deploys automatically.
 
----
+**[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** walks through each service, the required secrets, releasing, rolling back, and a checklist for a fresh deployment.
 
-## 📎 Links
+> The deploy workflows are currently **disabled**. The guide explains how to turn them back on.
 
-- 🔗 **Prototype**: [CodeBud Prototype in Visily](https://app.visily.ai/projects/44b88f73-7690-4228-86c4-96b70062a295/boards/1927196)
-- 📁 **Repository**: [github.com/HAMZl/codebud-learning-app](https://github.com/HAMZl/codebud-learning-app)
+## Project structure
 
----
+```
+backend/                      Flask API
+  app.py                      entry point (gunicorn app:app)
+  codebud/                    create_app() factory, config, db, validation
+    engine.py                 the game rules (mirrors engine.dart)
+    routes/                   auth, puzzles and progress endpoints
+  tests/                      pytest (in-memory MongoDB via mongomock)
+database/
+  build_puzzles.py            level definitions as ASCII maps, each checked against a reference solution
+  puzzles.json                generated by build_puzzles.py
+  seed.py                     upserts puzzles into MongoDB and creates indexes
+frontend/flutter_app/
+  lib/
+    game/engine.dart          the game rules: runs a program, returns the path and stars
+    services/                 ApiClient, Auth/Puzzle/Sound services, settings, AppScope
+    screens/                  landing, auth, home, levels, puzzle, settings
+    widgets/                  board, blocks, playground, popups
+    data/demo_puzzles.dart    levels bundled for the landing-page demo
+  assets/sounds/              sound effects (generated by tool/generate_sounds.py)
+  assets/screenshots/         screenshots (generated by test_screenshots/)
+  test/                       unit and widget tests, with a fake backend
+docs/                         local development, deployment, product notes
+.github/workflows/            CI and deploys for the backend and frontend
+```
 
-## 👨‍👩‍👧 Team Code of Conduct
+## How it works
 
-- Weekly team meetings every Tuesday at 7PM CST.
-- Transparent communication via Discord.
-- Equitable workload distribution.
-- Respect, collaboration, and constructive feedback encouraged.
+**One set of game rules, implemented twice.** `engine.dart` runs programs on the device, so the robot animates with no network delay. `engine.py` runs the same rules on the server. When a child solves a level, the app sends the **program** rather than a star count. The server replays it and decides the stars, so they can't be faked. Tests on both sides run every level's reference solution, so the two engines can't drift apart.
 
----
+| Block | Meaning |
+|---|---|
+| ⬆️ ⬇️ ⬅️ ➡️ | Move one cell. Hitting the edge or a rock ends the run with a hint. |
+| 🔁 Loop | Repeat the blocks inside 2–10 times. A loop can contain moves and if-blocks. |
+| ❓ If | Run the blocks inside only when the neighbouring cell in a direction is a rock (the edge counts), empty, or the star. |
 
-## 📅 Future Enhancements
+The run ends as soon as the robot reaches the star. **Stars:** every block counts, nested ones too. At or under the level's *par* earns ⭐⭐⭐, up to par + 2 earns ⭐⭐, and any other solution earns ⭐.
 
-- ~~Profile & Progress Tracking~~ (done: best stars per level and per-category totals)
-- ~~Multiple Puzzle Categories~~ (done: Sequencing, Loops, Conditionals) · Free Play mode
-- ~~Sound effects~~ (done: tap, step, bump, try-again, success with claps, and a star chime; mute button on the home and puzzle screens)
-- **More Characters and Themes**
-- **Parent Dashboard for Monitoring Progress**
+**Content as code.** Levels are drawn as text maps in `database/build_puzzles.py`. The build fails if a level can't be solved or its reference solution doesn't reach the star, and CI checks that `puzzles.json` is up to date.
 
+**Generated assets.** The sound effects are synthesized by a script, so there's nothing to license. The screenshots are rendered from the real screens by `test_screenshots/` (`flutter test test_screenshots --update-goldens`).
+
+## API
+
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| POST | `/signup` | – | Create a parent and child account |
+| POST | `/login` | – | Returns a JWT, valid for 7 days |
+| GET / PATCH | `/api/me` | JWT | Read or update the child and parent profile |
+| POST | `/api/me/password` | JWT | Change password (requires the current one) |
+| GET | `/api/puzzles/<category>` | JWT | Levels in a category, with best stars |
+| GET | `/api/puzzle/<id>` | – | One level and a link to the next (the solution is never sent) |
+| POST | `/api/validate_sequence` | – | Run a program and get the result and a hint |
+| GET / POST / DELETE | `/api/progress` | JWT | Per-category totals / save a solved program / reset (`?category=` for one category) |
+| GET | `/health` | – | Health check |
+
+## Testing
+
+```bash
+cd backend && pytest                                  # API, engine, and puzzle content
+cd frontend/flutter_app && flutter analyze && flutter test   # engine, widgets, landing page, settings
+```
+
+CI runs these checks, plus a format check, on every pull request.
+
+## More
+
+- [Product notes](docs/PRODUCT.md): vision, personas, user stories, design guidelines
+- [Prototype in Visily](https://app.visily.ai/projects/44b88f73-7690-4228-86c4-96b70062a295/boards/1927196)
