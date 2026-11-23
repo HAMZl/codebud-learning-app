@@ -1,39 +1,57 @@
-import pytest
-import sys
-import os
+import json
+from pathlib import Path
+
+import mongomock
 import pytest
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
-from app import app as flask_app
-from unittest.mock import patch
+from codebud import create_app
+from codebud.config import TestConfig
+
+PUZZLES_JSON = Path(__file__).resolve().parents[2] / "database" / "puzzles.json"
+
+USER = {
+    "parent_name": "Jane",
+    "email": "jane@example.com",
+    "child_name": "Tommy",
+    "child_age": 6,
+    "username": "tommy",
+    "password": "secret123",
+}
+
+
+@pytest.fixture(scope="session")
+def puzzle_data():
+    return json.loads(PUZZLES_JSON.read_text(encoding="utf-8"))
+
 
 @pytest.fixture
-def app():
-    flask_app.config['TESTING'] = True
-    flask_app.config['JWT_SECRET_KEY'] = 'test-secret'
-    yield flask_app
+def db(puzzle_data):
+    database = mongomock.MongoClient()["codebud_test"]
+    database.puzzles.insert_many([dict(p) for p in puzzle_data])
+    return database
+
+
+@pytest.fixture
+def app(db):
+    return create_app(TestConfig, db=db)
+
 
 @pytest.fixture
 def client(app):
     return app.test_client()
 
-@pytest.fixture
-def auth_header():
-    with patch("flask_jwt_extended.view_decorators.verify_jwt_in_request", return_value=None), \
-         patch("flask_jwt_extended.get_jwt_identity", return_value="testuser"):
-        yield {"Authorization": "Bearer faketoken"}
 
 @pytest.fixture
-def mock_db_user():
-    with patch("app.db.users") as mock:
-        yield mock
+def signup(client):
+    def _signup(**overrides):
+        return client.post("/signup", json={**USER, **overrides})
+
+    return _signup
+
 
 @pytest.fixture
-def mock_db_progress():
-    with patch("app.db.progress") as mock:
-        yield mock
-
-@pytest.fixture
-def mock_db_puzzles():
-    with patch("app.db.puzzles") as mock:
-        yield mock
+def auth_header(client, signup):
+    assert signup().status_code == 200
+    res = client.post("/login", json={"username": USER["username"], "password": USER["password"]})
+    assert res.status_code == 200
+    return {"Authorization": f"Bearer {res.json['token']}"}

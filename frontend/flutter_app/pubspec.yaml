@@ -1,10 +1,10 @@
 name: flutter_app
-description: "A new Flutter project."
+description: "CodeBud: a visual coding adventure for kids aged 4 to 7."
 publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ">=3.5.0 <4.0.0"
 
 
 dependencies:
@@ -13,6 +13,7 @@ dependencies:
   http: ^1.1.0
   flutter_secure_storage: ^9.0.0
   cupertino_icons: ^1.0.8
+  audioplayers: ^6.6.0
 
 
 dev_dependencies:
@@ -24,7 +25,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^2.0.1
+  flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
@@ -32,4 +33,5 @@ flutter:
   assets:
     - lib/assets/images/codebud_logo.png
     - lib/assets/images/homepage_logo.png
+    - assets/sounds/
 

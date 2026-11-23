@@ -1,36 +1,42 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../models/command.dart';
 import '../models/puzzle.dart';
+import 'api_client.dart';
+
+class ProgressResult {
+  final int stars;
+  final int bestStars;
+  const ProgressResult({required this.stars, required this.bestStars});
+}
 
 class PuzzleService {
-  static const _baseUrl = 'https://codebud-learning-app.onrender.com/api';
+  PuzzleService(this._api);
 
-  static Future<Puzzle?> fetchPuzzle(String id) async {
-    final res = await http.get(Uri.parse('$_baseUrl/puzzle/$id'));
-    if (res.statusCode == 200) {
-      return Puzzle.fromJson(json.decode(res.body));
-    }
-    return null;
+  final ApiClient _api;
+
+  Future<List<PuzzleSummary>> fetchCategory(String category) async {
+    final data = await _api.get('/api/puzzles/$category', auth: true);
+    return (data['puzzles'] as List).map((p) => PuzzleSummary.fromJson(p as Map<String, dynamic>)).toList();
   }
 
-  static Future<bool> saveProgress(
-    String token,
-    Puzzle puzzle,
-    int stars,
-  ) async {
-    final res = await http.post(
-      Uri.parse('$_baseUrl/progress'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({
-        'puzzle_id': puzzle.id,
-        'stars': stars,
-        'status': 'completed',
-        'updated_at': DateTime.now().toIso8601String(),
-      }),
+  Future<Puzzle> fetchPuzzle(String id) async {
+    final data = await _api.get('/api/puzzle/$id');
+    return Puzzle.fromJson(data);
+  }
+
+  Future<Map<String, CategoryProgress>> fetchProgress() async {
+    final data = await _api.get('/api/progress', auth: true);
+    final cats = data['categories'] as Map<String, dynamic>? ?? const {};
+    return cats.map((k, v) => MapEntry(k, CategoryProgress.fromJson(v as Map<String, dynamic>)));
+  }
+
+  /// Sends the winning program. The server replays it and decides the stars.
+  Future<ProgressResult> saveProgress(Puzzle puzzle, List<CommandItem> program) async {
+    final data = await _api.post(
+      '/api/progress',
+      {'puzzle_id': puzzle.id, 'program': program.map((b) => b.toJson()).toList()},
+      auth: true,
     );
-    return res.statusCode == 200;
+    final stars = data['stars'] as int? ?? 0;
+    return ProgressResult(stars: stars, bestStars: data['best_stars'] as int? ?? stars);
   }
 }

@@ -1,155 +1,157 @@
 import 'package:flutter/material.dart';
 
-class HomePage extends StatelessWidget {
+import '../models/category.dart';
+import '../models/puzzle.dart';
+import '../routes.dart';
+import '../services/api_client.dart';
+import '../services/app_scope.dart';
+import '../theme/app_theme.dart';
+import '../widgets/mute_button.dart';
+import 'session.dart';
+
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String? _childName;
+  Map<String, CategoryProgress> _progress = const {};
+  bool _loaded = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      _load();
+    }
+  }
+
+  Future<void> _load() async {
+    final scope = AppScope.of(context);
+    final name = await scope.auth.childName();
+    if (mounted) setState(() => _childName = name);
+    try {
+      final progress = await scope.puzzles.fetchProgress();
+      if (mounted) setState(() => _progress = progress);
+    } on ApiException catch (e) {
+      // The progress badges are optional. Only an expired session needs handling.
+      if (mounted && e.isUnauthorized) await handleApiError(context, e);
+    }
+  }
+
+  Future<void> _openCategory(PuzzleCategory category) async {
+    await Navigator.pushNamed(context, Routes.category, arguments: category.id);
+    if (mounted) _load(); // refresh the stars when the player comes back
+  }
+
+  Future<void> _logout() async {
+    await AppScope.of(context).auth.logout();
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(context, Routes.launch, (_) => false);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final greeting = _childName == null ? 'Hello, Buddy!' : 'Hello, $_childName!';
     return Scaffold(
-      backgroundColor: Colors.white, // Match clean white background
+      appBar: AppBar(
+        title: const Text('CodeBud', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w700)),
+        leading: Padding(
+          padding: const EdgeInsets.all(8),
+          child: ClipOval(child: Image.asset('lib/assets/images/homepage_logo.png', fit: BoxFit.cover)),
+        ),
+        actions: [
+          const MuteButton(),
+          IconButton(tooltip: 'Log out', icon: const Icon(Icons.logout), onPressed: _logout)
+        ],
+      ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // Top App Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: Stack(
-                children: [
-                  const Align(
-                    alignment: Alignment.center,
-                    child: Text(
-                      'CodeBud',
-                      style: TextStyle(
-                        fontSize: 25,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black87,
-                      ),
-                    ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
+                Text(
+                  '$greeting What will you\nlearn today?',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                ),
+                const SizedBox(height: 24),
+                Expanded(
+                  child: GridView.count(
+                    padding: const EdgeInsets.all(16),
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    children: [
+                      for (final c in PuzzleCategory.all)
+                        _CategoryCard(category: c, progress: _progress[c.id], onTap: () => _openCategory(c)),
+                    ],
                   ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ClipOval(
-                      child: Image.asset(
-                        'lib/assets/images/homepage_logo.png',
-                        height: 40,
-                        width: 40,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                'Hello, Buddy! What will you\nlearn today?',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
                 ),
-              ),
+              ],
             ),
-
-            const SizedBox(height: 24),
-
-            // Puzzle Category Grid
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1,
-                  children: [
-                    _buildCard(
-                      context,
-                      title: 'Sequencing',
-                      icon: Icons.timeline,
-                      bgColor: Colors.blue.shade200,
-                      iconColor: Colors.blue.shade800,
-                      onTapRoute: '/sequences',
-                    ),
-                    _buildCard(
-                      context,
-                      title: 'Loops',
-                      icon: Icons.repeat,
-                      bgColor: Colors.green.shade300,
-                      iconColor: Colors.green.shade900,
-                      onTapRoute: '/loops',
-                    ),
-                    _buildCard(
-                      context,
-                      title: 'Conditionals',
-                      icon: Icons.device_unknown,
-                      bgColor: Colors.orange.shade300,
-                      iconColor: Colors.orange.shade900,
-                      onTapRoute: '/conditionals',
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildCard(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required Color bgColor,
-    required Color iconColor,
-    required String onTapRoute,
-  }) {
-    return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, onTapRoute),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [bgColor.withOpacity(0.3), bgColor.withOpacity(0.1)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+class _CategoryCard extends StatelessWidget {
+  const _CategoryCard({required this.category, required this.progress, required this.onTap});
+
+  final PuzzleCategory category;
+  final CategoryProgress? progress;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = category.color;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [color.withValues(alpha: 0.25), color.withValues(alpha: 0.08)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: color.withValues(alpha: 0.6), width: 1.5),
           ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: bgColor.withOpacity(0.6), width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: bgColor.withOpacity(0.2),
-              blurRadius: 8,
-              offset: const Offset(2, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              backgroundColor: bgColor,
-              radius: 28,
-              child: Icon(icon, size: 28, color: iconColor),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                backgroundColor: color.withValues(alpha: 0.5),
+                radius: 28,
+                child: Icon(category.icon, size: 28, color: Colors.black87),
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              Text(category.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+              if (progress != null && progress!.maxStars > 0) ...[
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.star, size: 18, color: AppColors.star),
+                    const SizedBox(width: 4),
+                    Text('${progress!.stars} / ${progress!.maxStars}',
+                        style: const TextStyle(fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );

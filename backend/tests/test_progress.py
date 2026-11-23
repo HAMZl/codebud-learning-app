@@ -1,64 +1,63 @@
-import pytest
-from unittest.mock import patch
+def post_progress(client, headers, **body):
+    return client.post("/api/progress", json=body, headers=headers)
 
-def test_create_new_progress(client, mock_db_progress):
-    mock_db_progress.find_one.return_value = None
-    mock_db_progress.insert_one.return_value = None
 
-    with patch("flask_jwt_extended.view_decorators.verify_jwt_in_request", return_value=None), \
-         patch("flask_jwt_extended.get_jwt_identity", return_value="testuser"), \
-         patch("flask_jwt_extended.utils.get_jwt", return_value={"sub": "testuser"}):
+def moves(*names):
+    return [{"type": n} for n in names]
 
-        response = client.post("/api/progress", json={
-            "puzzle_id": "p1",
-            "status": "completed",
-            "stars": 3,
-            "updated_at": "2025-07-18"
-        }, headers={"Authorization": "Bearer faketoken"})
 
-    assert response.status_code == 201
-    assert response.json["message"] == "Progress created"
+def test_create_progress_from_program(client, auth_header, db):
+    res = post_progress(client, auth_header, puzzle_id="seq1", program=moves("Right", "Right", "Right"))
+    assert res.status_code == 201
+    assert res.json["message"] == "Progress created"
+    assert res.json["stars"] == 3
+    assert db.progress.find_one({"username": "tommy", "puzzle_id": "seq1"})["stars"] == 3
 
-def test_update_progress_with_more_stars(client, mock_db_progress):
-    mock_db_progress.find_one.return_value = {
-        "_id": "abc123",
-        "username": "testuser",
-        "puzzle_id": "p1",
-        "stars": 1
-    }
 
-    with patch("flask_jwt_extended.view_decorators.verify_jwt_in_request", return_value=None), \
-         patch("flask_jwt_extended.get_jwt_identity", return_value="testuser"), \
-         patch("flask_jwt_extended.utils.get_jwt", return_value={"sub": "testuser"}):
-        
-        response = client.post("/api/progress", json={
-            "puzzle_id": "p1",
-            "status": "completed",
-            "stars": 3,
-            "updated_at": "2025-07-18"
-        }, headers={"Authorization": "Bearer faketoken"})
+def test_server_computes_stars_from_program(client, auth_header):
+    # loop1 has par 2 (a 4x Right loop). Four separate moves use 4 blocks, which is 2 stars.
+    res = post_progress(client, auth_header, puzzle_id="loop1", program=moves("Right", "Right", "Right", "Right"))
+    assert res.json["stars"] == 2
 
-    assert response.status_code == 200
-    assert response.json["message"] == "Progress updated"
 
-def test_update_progress_with_fewer_stars(client, mock_db_progress):
-    mock_db_progress.find_one.return_value = {
-        "_id": "abc123",
-        "username": "testuser",
-        "puzzle_id": "p1",
-        "stars": 3
-    }
+def test_unsolved_program_is_rejected(client, auth_header, db):
+    res = post_progress(client, auth_header, puzzle_id="seq1", program=moves("Right"))
+    assert res.status_code == 422
+    assert res.json["status"] == "incomplete"
+    assert db.progress.count_documents({}) == 0
 
-    with patch("flask_jwt_extended.view_decorators.verify_jwt_in_request", return_value=None), \
-         patch("flask_jwt_extended.get_jwt_identity", return_value="testuser"), \
-         patch("flask_jwt_extended.utils.get_jwt", return_value={"sub": "testuser"}):
-        
-        response = client.post("/api/progress", json={
-            "puzzle_id": "p1",
-            "status": "completed",
-            "stars": 2,
-            "updated_at": "2025-07-18"
-        }, headers={"Authorization": "Bearer faketoken"})
 
-    assert response.status_code == 200
-    assert response.json["message"] == "No update needed (equal or lower stars)"
+def test_best_stars_are_kept(client, auth_header, db):
+    post_progress(client, auth_header, puzzle_id="seq1", stars=1)
+
+    res = post_progress(client, auth_header, puzzle_id="seq1", stars=3)
+    assert res.json["message"] == "Progress updated"
+
+    res = post_progress(client, auth_header, puzzle_id="seq1", stars=2)
+    assert res.json["message"] == "No update needed (equal or lower stars)"
+    assert res.json["best_stars"] == 3
+    assert db.progress.find_one({"puzzle_id": "seq1"})["stars"] == 3
+    assert db.progress.count_documents({}) == 1
+
+
+def test_legacy_stars_are_validated(client, auth_header):
+    assert post_progress(client, auth_header, puzzle_id="seq1", stars=99).status_code == 400
+
+
+def test_progress_for_unknown_puzzle(client, auth_header):
+    assert post_progress(client, auth_header, puzzle_id="nope", stars=3).status_code == 404
+
+
+def test_progress_requires_login(client):
+    assert client.post("/api/progress", json={"puzzle_id": "seq1", "stars": 3}).status_code == 401
+
+
+def test_progress_summary(client, auth_header):
+    post_progress(client, auth_header, puzzle_id="seq1", stars=3)
+    post_progress(client, auth_header, puzzle_id="seq2", stars=2)
+
+    res = client.get("/api/progress", headers=auth_header)
+    assert res.status_code == 200
+    cats = res.json["categories"]
+    assert cats["sequence"] == {"total": 10, "completed": 2, "stars": 5, "max_stars": 30}
+    assert cats["loop"]["completed"] == 0

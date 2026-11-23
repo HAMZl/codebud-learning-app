@@ -1,41 +1,46 @@
 # MongoDB Setup Guide for CodeBud
 
-This guide explains how to install MongoDB and initialize the project database using `db_init.py` and `db_init_puzzle.py`.
+## 1. Get a MongoDB database
 
----
+**Option A: MongoDB Atlas (recommended; this is what production uses).** Create a free cluster at
+https://www.mongodb.com/atlas and copy its `mongodb+srv://...` connection string.
 
-## Step 1: Install MongoDB
+**Option B: local install.**
 
-### Windows
-1. Download MongoDB Community Server from: https://www.mongodb.com/try/download/community
-2. Select:
-   - Version: MongoDB 6.0 or newer
-   - Platform: Windows
-   - Package: MSI
-3. Run the installer:
-   - Choose **Complete Setup**
-   - Ensure **"Install MongoDB as a Service"** is selected
-4. (Optional) Install **MongoDB Compass** for GUI management.
+- Windows: install MongoDB Community Server (MSI) from https://www.mongodb.com/try/download/community and choose "Install MongoDB as a Service".
+- macOS:
+  ```bash
+  brew tap mongodb/brew
+  brew install mongodb-community
+  brew services start mongodb-community
+  ```
 
-### macOS
+The local connection string is `mongodb://localhost:27017`.
+
+## 2. Load the puzzles
+
+From the repository root, with the backend virtual environment active:
+
 ```bash
-brew tap mongodb/brew
-brew install mongodb-community@6.0
-brew services start mongodb-community@6.0
+export MONGO_URI="mongodb+srv://..."   # or put MONGO_URI in backend/.env
+python database/seed.py
 ```
 
+This creates the indexes (unique usernames, one progress row per child and puzzle) and upserts every puzzle by `id`. It is safe to run again, and it never touches users or progress. Add `--prune` to delete puzzles that were removed from `puzzles.json`.
 
-## Step 2: Verify MongoDB Installation
-```bash
-mongosh 
+## 3. Editing levels
+
+Levels are drawn as ASCII maps in `build_puzzles.py`:
+
+```
+S  start    G  goal (star)    #  rock    .  free
 ```
 
-## Step 3: Install Python Dependencies
+After editing, regenerate and re-seed:
+
 ```bash
-pip install pymongo dnspython
+python database/build_puzzles.py   # fails if a level is unsolvable or its reference solution doesn't work
+python database/seed.py
 ```
-## Step 4: Initialize the CodeBud Database
-```bash
-python db_init.py
-python db_init_puzzle.py
-```
+
+CI runs `build_puzzles.py --check` and fails if `puzzles.json` wasn't regenerated.

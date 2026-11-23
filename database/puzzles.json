@@ -1,0 +1,1577 @@
+[
+  {
+    "id": "seq1",
+    "category": "sequence",
+    "order": 1,
+    "title": "First Steps",
+    "gridSize": 4,
+    "start": [
+      1,
+      0
+    ],
+    "goal": [
+      1,
+      3
+    ],
+    "obstacles": [],
+    "par": 3,
+    "solution": [
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Right"
+      }
+    ]
+  },
+  {
+    "id": "seq2",
+    "category": "sequence",
+    "order": 2,
+    "title": "Going Down",
+    "gridSize": 4,
+    "start": [
+      0,
+      1
+    ],
+    "goal": [
+      3,
+      1
+    ],
+    "obstacles": [],
+    "par": 3,
+    "solution": [
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Down"
+      }
+    ]
+  },
+  {
+    "id": "seq3",
+    "category": "sequence",
+    "order": 3,
+    "title": "Hidden Star",
+    "gridSize": 5,
+    "start": [
+      4,
+      0
+    ],
+    "goal": [
+      2,
+      2
+    ],
+    "obstacles": [
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "par": 4,
+    "solution": [
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Up"
+      },
+      {
+        "type": "Up"
+      }
+    ]
+  },
+  {
+    "id": "seq4",
+    "category": "sequence",
+    "order": 4,
+    "title": "Turn the Corner",
+    "gridSize": 4,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      3,
+      3
+    ],
+    "obstacles": [],
+    "par": 6,
+    "solution": [
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Right"
+      }
+    ]
+  },
+  {
+    "id": "seq5",
+    "category": "sequence",
+    "order": 5,
+    "title": "Around the Rock",
+    "gridSize": 5,
+    "start": [
+      2,
+      0
+    ],
+    "goal": [
+      2,
+      4
+    ],
+    "obstacles": [
+      [
+        2,
+        2
+      ]
+    ],
+    "par": 6,
+    "solution": [
+      {
+        "type": "Up"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Right"
+      }
+    ]
+  },
+  {
+    "id": "seq6",
+    "category": "sequence",
+    "order": 6,
+    "title": "The Wall",
+    "gridSize": 5,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      2,
+      4
+    ],
+    "obstacles": [
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        2
+      ]
+    ],
+    "par": 8,
+    "solution": [
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Up"
+      },
+      {
+        "type": "Right"
+      }
+    ]
+  },
+  {
+    "id": "seq7",
+    "category": "sequence",
+    "order": 7,
+    "title": "Rocky Road",
+    "gridSize": 5,
+    "start": [
+      0,
+      2
+    ],
+    "goal": [
+      4,
+      2
+    ],
+    "obstacles": [
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        3,
+        3
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        4,
+        3
+      ]
+    ],
+    "par": 8,
+    "solution": [
+      {
+        "type": "Left"
+      },
+      {
+        "type": "Left"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Down"
+      }
+    ]
+  },
+  {
+    "id": "seq8",
+    "category": "sequence",
+    "order": 8,
+    "title": "Zig Zag",
+    "gridSize": 5,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      3,
+      4
+    ],
+    "obstacles": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "par": 9,
+    "solution": [
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Up"
+      }
+    ]
+  },
+  {
+    "id": "seq9",
+    "category": "sequence",
+    "order": 9,
+    "title": "Up and Over",
+    "gridSize": 5,
+    "start": [
+      4,
+      0
+    ],
+    "goal": [
+      4,
+      4
+    ],
+    "obstacles": [
+      [
+        2,
+        2
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        4,
+        2
+      ]
+    ],
+    "par": 10,
+    "solution": [
+      {
+        "type": "Up"
+      },
+      {
+        "type": "Up"
+      },
+      {
+        "type": "Up"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Right"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Right"
+      }
+    ]
+  },
+  {
+    "id": "seq10",
+    "category": "sequence",
+    "order": 10,
+    "title": "Long Way Home",
+    "gridSize": 5,
+    "start": [
+      4,
+      4
+    ],
+    "goal": [
+      0,
+      0
+    ],
+    "obstacles": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        3,
+        3
+      ],
+      [
+        4,
+        3
+      ]
+    ],
+    "par": 16,
+    "solution": [
+      {
+        "type": "Up"
+      },
+      {
+        "type": "Up"
+      },
+      {
+        "type": "Up"
+      },
+      {
+        "type": "Up"
+      },
+      {
+        "type": "Left"
+      },
+      {
+        "type": "Left"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Left"
+      },
+      {
+        "type": "Left"
+      },
+      {
+        "type": "Up"
+      },
+      {
+        "type": "Up"
+      },
+      {
+        "type": "Up"
+      },
+      {
+        "type": "Up"
+      }
+    ]
+  },
+  {
+    "id": "loop1",
+    "category": "loop",
+    "order": 1,
+    "title": "Repeat Right",
+    "gridSize": 5,
+    "start": [
+      2,
+      0
+    ],
+    "goal": [
+      2,
+      4
+    ],
+    "obstacles": [],
+    "par": 2,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "Right"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loop2",
+    "category": "loop",
+    "order": 2,
+    "title": "Repeat Down",
+    "gridSize": 5,
+    "start": [
+      0,
+      2
+    ],
+    "goal": [
+      4,
+      2
+    ],
+    "obstacles": [],
+    "par": 2,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "Down"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loop3",
+    "category": "loop",
+    "order": 3,
+    "title": "Two Loops",
+    "gridSize": 5,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      4,
+      4
+    ],
+    "obstacles": [],
+    "par": 4,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "Right"
+          }
+        ]
+      },
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "Down"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loop4",
+    "category": "loop",
+    "order": 4,
+    "title": "Loop and Step",
+    "gridSize": 5,
+    "start": [
+      1,
+      0
+    ],
+    "goal": [
+      2,
+      4
+    ],
+    "obstacles": [
+      [
+        1,
+        4
+      ]
+    ],
+    "par": 4,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 3,
+        "body": [
+          {
+            "type": "Right"
+          }
+        ]
+      },
+      {
+        "type": "Down"
+      },
+      {
+        "type": "Right"
+      }
+    ]
+  },
+  {
+    "id": "loop5",
+    "category": "loop",
+    "order": 5,
+    "title": "Staircase",
+    "gridSize": 5,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      4,
+      4
+    ],
+    "obstacles": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "par": 3,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "Down"
+          },
+          {
+            "type": "Right"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loop6",
+    "category": "loop",
+    "order": 6,
+    "title": "Climb Up",
+    "gridSize": 5,
+    "start": [
+      4,
+      0
+    ],
+    "goal": [
+      0,
+      4
+    ],
+    "obstacles": [
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        3,
+        0
+      ]
+    ],
+    "par": 3,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "Right"
+          },
+          {
+            "type": "Up"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loop7",
+    "category": "loop",
+    "order": 7,
+    "title": "Big Steps",
+    "gridSize": 5,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      4,
+      4
+    ],
+    "obstacles": [
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "par": 5,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 2,
+        "body": [
+          {
+            "type": "Right"
+          },
+          {
+            "type": "Right"
+          },
+          {
+            "type": "Down"
+          },
+          {
+            "type": "Down"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loop8",
+    "category": "loop",
+    "order": 8,
+    "title": "Down and Back",
+    "gridSize": 5,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      0,
+      4
+    ],
+    "obstacles": [
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        3,
+        2
+      ]
+    ],
+    "par": 6,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "Down"
+          }
+        ]
+      },
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "Right"
+          }
+        ]
+      },
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "Up"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loop9",
+    "category": "loop",
+    "order": 9,
+    "title": "Spiral",
+    "gridSize": 5,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      2,
+      1
+    ],
+    "obstacles": [
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "par": 9,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "Right"
+          }
+        ]
+      },
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "Down"
+          }
+        ]
+      },
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "Left"
+          }
+        ]
+      },
+      {
+        "type": "Loop",
+        "repeat": 2,
+        "body": [
+          {
+            "type": "Up"
+          }
+        ]
+      },
+      {
+        "type": "Right"
+      }
+    ]
+  },
+  {
+    "id": "loop10",
+    "category": "loop",
+    "order": 10,
+    "title": "Snake",
+    "gridSize": 5,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      4,
+      4
+    ],
+    "obstacles": [
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        3,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "par": 10,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "Right"
+          }
+        ]
+      },
+      {
+        "type": "Loop",
+        "repeat": 2,
+        "body": [
+          {
+            "type": "Down"
+          }
+        ]
+      },
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "Left"
+          }
+        ]
+      },
+      {
+        "type": "Loop",
+        "repeat": 2,
+        "body": [
+          {
+            "type": "Down"
+          }
+        ]
+      },
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "Right"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cond1",
+    "category": "conditional",
+    "order": 1,
+    "title": "Look Ahead",
+    "gridSize": 5,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      2,
+      4
+    ],
+    "obstacles": [
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        3
+      ]
+    ],
+    "par": 4,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "If",
+            "condition": "obstacle_right",
+            "body": [
+              {
+                "type": "Down"
+              }
+            ]
+          },
+          {
+            "type": "Right"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cond2",
+    "category": "conditional",
+    "order": 2,
+    "title": "Edge of the World",
+    "gridSize": 5,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      2,
+      4
+    ],
+    "obstacles": [
+      [
+        0,
+        3
+      ]
+    ],
+    "par": 4,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 5,
+        "body": [
+          {
+            "type": "If",
+            "condition": "obstacle_right",
+            "body": [
+              {
+                "type": "Down"
+              }
+            ]
+          },
+          {
+            "type": "Right"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cond3",
+    "category": "conditional",
+    "order": 3,
+    "title": "Look Down",
+    "gridSize": 5,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      4,
+      4
+    ],
+    "obstacles": [
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        4,
+        3
+      ]
+    ],
+    "par": 4,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "If",
+            "condition": "obstacle_down",
+            "body": [
+              {
+                "type": "Right"
+              }
+            ]
+          },
+          {
+            "type": "Down"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cond4",
+    "category": "conditional",
+    "order": 4,
+    "title": "Find the Star",
+    "gridSize": 5,
+    "start": [
+      1,
+      0
+    ],
+    "goal": [
+      2,
+      4
+    ],
+    "obstacles": [
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "par": 4,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "Right"
+          },
+          {
+            "type": "If",
+            "condition": "goal_down",
+            "body": [
+              {
+                "type": "Down"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cond5",
+    "category": "conditional",
+    "order": 5,
+    "title": "Fall Down",
+    "gridSize": 5,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      4,
+      4
+    ],
+    "obstacles": [
+      [
+        2,
+        1
+      ]
+    ],
+    "par": 4,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 5,
+        "body": [
+          {
+            "type": "If",
+            "condition": "empty_down",
+            "body": [
+              {
+                "type": "Down"
+              }
+            ]
+          },
+          {
+            "type": "Right"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cond6",
+    "category": "conditional",
+    "order": 6,
+    "title": "Wall Follower",
+    "gridSize": 5,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      3,
+      4
+    ],
+    "obstacles": [
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        4
+      ]
+    ],
+    "par": 4,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 5,
+        "body": [
+          {
+            "type": "If",
+            "condition": "obstacle_right",
+            "body": [
+              {
+                "type": "Down"
+              }
+            ]
+          },
+          {
+            "type": "Right"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cond7",
+    "category": "conditional",
+    "order": 7,
+    "title": "Down the Cliff",
+    "gridSize": 5,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      4,
+      3
+    ],
+    "obstacles": [
+      [
+        2,
+        0
+      ],
+      [
+        4,
+        1
+      ]
+    ],
+    "par": 4,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 5,
+        "body": [
+          {
+            "type": "If",
+            "condition": "obstacle_down",
+            "body": [
+              {
+                "type": "Right"
+              }
+            ]
+          },
+          {
+            "type": "Down"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cond8",
+    "category": "conditional",
+    "order": 8,
+    "title": "Long Staircase",
+    "gridSize": 6,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      3,
+      5
+    ],
+    "obstacles": [
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        4
+      ]
+    ],
+    "par": 4,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 6,
+        "body": [
+          {
+            "type": "If",
+            "condition": "obstacle_right",
+            "body": [
+              {
+                "type": "Down"
+              }
+            ]
+          },
+          {
+            "type": "Right"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cond9",
+    "category": "conditional",
+    "order": 9,
+    "title": "Bumpy Road",
+    "gridSize": 6,
+    "start": [
+      5,
+      0
+    ],
+    "goal": [
+      5,
+      5
+    ],
+    "obstacles": [
+      [
+        5,
+        1
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "par": 6,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 5,
+        "body": [
+          {
+            "type": "If",
+            "condition": "obstacle_right",
+            "body": [
+              {
+                "type": "Up"
+              }
+            ]
+          },
+          {
+            "type": "Right"
+          },
+          {
+            "type": "If",
+            "condition": "empty_down",
+            "body": [
+              {
+                "type": "Down"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cond10",
+    "category": "conditional",
+    "order": 10,
+    "title": "Clever Robot",
+    "gridSize": 6,
+    "start": [
+      5,
+      0
+    ],
+    "goal": [
+      5,
+      5
+    ],
+    "obstacles": [
+      [
+        5,
+        1
+      ],
+      [
+        5,
+        4
+      ]
+    ],
+    "par": 6,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 5,
+        "body": [
+          {
+            "type": "If",
+            "condition": "obstacle_right",
+            "body": [
+              {
+                "type": "Up"
+              }
+            ]
+          },
+          {
+            "type": "Right"
+          },
+          {
+            "type": "If",
+            "condition": "empty_down",
+            "body": [
+              {
+                "type": "Down"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

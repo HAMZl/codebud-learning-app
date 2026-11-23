@@ -1,41 +1,53 @@
 # Backend Setup Guide for CodeBud
 
-This guide walks you through setting up the backend environment for the CodeBud project using Flask.
-
----
-
 ## Prerequisites
 
-Ensure the following are installed:
+- Python 3.10 or higher
+- A MongoDB database: a local install, or a free MongoDB Atlas cluster (see `../database/setupMongoDB.md`)
 
-- Python 3.8 or higher
-- pip (Python package manager)
+## 1. Create a virtual environment
 
-
-## Step 2: Create a Virtual Environment
-To isolate project dependencies:
 ```bash
-# Create the virtual environment
-python -m venv venv
+python -m venv .venv
 
-# Activate the virtual environment
-
-# On Windows:
-venv\Scripts\activate
-
-# On macOS/Linux:
-source venv/bin/activate
+# Windows
+.venv\Scripts\activate
+# macOS / Linux
+source .venv/bin/activate
 ```
-## Step 3: Install Python Dependencies
+
+## 2. Install dependencies
+
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # runtime + test dependencies
 ```
-## Step 4: Run the Flask App
-Start the development server:
+
+`requirements.txt` holds only what production (Render) needs.
+
+## 3. Configure
+
+```bash
+cp .env.example .env
+```
+
+Fill in `MONGO_URI`. With `CODEBUD_ENV=development` a throwaway JWT secret is used. In production the app refuses to start without `JWT_SECRET_KEY`.
+
+## 4. Run the tests
+
+```bash
+pytest
+```
+
+The tests use an in-memory MongoDB (mongomock), so they need no database or network.
+
+## 5. Run the server
+
 ```bash
 python app.py
 ```
-You should see output similar to:
-```bash
-* Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+
 ```
+* Running on http://127.0.0.1:5000/
+```
+
+Check that it is up: `curl http://127.0.0.1:5000/health` should return `{"status": "ok"}`.
