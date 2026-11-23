@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'api_client.dart';
 import 'auth_service.dart';
 import 'puzzle_service.dart';
+import 'settings.dart';
 import 'sound_service.dart';
 import 'token_storage.dart';
 
@@ -13,23 +14,30 @@ class AppScope extends InheritedWidget {
     super.key,
     required this.auth,
     required this.puzzles,
+    required this.settings,
     required this.sounds,
     required super.child,
   });
 
-  factory AppScope.production({Key? key, required Widget child}) {
+  /// Builds the real services. Settings are loaded before the first frame, so
+  /// sound and speed are right from the start.
+  static Future<AppScope> production({Key? key, required Widget child}) async {
     final api = ApiClient(tokens: SecureTokenStorage());
+    final settings = SettingsController(PrefsSettingsStore());
+    await settings.load();
     return AppScope(
       key: key,
       auth: AuthService(api),
       puzzles: PuzzleService(api),
-      sounds: AudioSoundService(),
+      settings: settings,
+      sounds: AudioSoundService(settings),
       child: child,
     );
   }
 
   final AuthService auth;
   final PuzzleService puzzles;
+  final SettingsController settings;
   final SoundService sounds;
 
   static AppScope of(BuildContext context) {
@@ -40,5 +48,8 @@ class AppScope extends InheritedWidget {
 
   @override
   bool updateShouldNotify(AppScope oldWidget) =>
-      auth != oldWidget.auth || puzzles != oldWidget.puzzles || sounds != oldWidget.sounds;
+      auth != oldWidget.auth ||
+      puzzles != oldWidget.puzzles ||
+      settings != oldWidget.settings ||
+      sounds != oldWidget.sounds;
 }

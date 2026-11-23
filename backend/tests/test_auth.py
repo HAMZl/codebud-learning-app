@@ -73,7 +73,7 @@ def test_login_failure_does_not_reveal_which_part_was_wrong(client, signup, user
 def test_me(client, auth_header):
     res = client.get("/api/me", headers=auth_header)
     assert res.status_code == 200
-    assert res.json == {"username": "tommy", "child_name": "Tommy", "child_age": 6}
+    assert res.json["username"] == "tommy" and res.json["child_name"] == "Tommy" and res.json["child_age"] == 6
 
 
 def test_protected_route_requires_token(client):
@@ -92,3 +92,45 @@ def test_production_requires_jwt_secret(monkeypatch, db):
 
 def test_health(client):
     assert client.get("/health").json == {"status": "ok"}
+
+
+def test_me_includes_parent_details(client, auth_header):
+    res = client.get("/api/me", headers=auth_header)
+    assert res.json["parent_name"] == "Jane"
+    assert res.json["email"] == "jane@example.com"
+
+
+def test_update_profile(client, auth_header, db):
+    res = client.patch("/api/me", json={"child_name": "Tom", "child_age": "7"}, headers=auth_header)
+    assert res.status_code == 200
+    assert res.json["child_name"] == "Tom"
+    stored = db.users.find_one({"username": "tommy"})
+    assert (stored["child_name"], stored["child_age"], stored["parent_name"]) == ("Tom", 7, "Jane")
+
+
+@pytest.mark.parametrize("body", [{}, {"child_age": 99}, {"email": "nope"}, {"child_name": " "}])
+def test_update_profile_validation(client, auth_header, body):
+    assert client.patch("/api/me", json=body, headers=auth_header).status_code == 400
+
+
+def test_change_password(client, auth_header):
+    res = client.post(
+        "/api/me/password", json={"current_password": "secret123", "new_password": "newpass1"}, headers=auth_header
+    )
+    assert res.status_code == 200
+    assert client.post("/login", json={"username": "tommy", "password": "secret123"}).status_code == 401
+    assert client.post("/login", json={"username": "tommy", "password": "newpass1"}).status_code == 200
+
+
+def test_change_password_requires_current_password(client, auth_header):
+    res = client.post(
+        "/api/me/password", json={"current_password": "wrong", "new_password": "newpass1"}, headers=auth_header
+    )
+    assert res.status_code == 403
+
+
+def test_change_password_rejects_short_password(client, auth_header):
+    res = client.post(
+        "/api/me/password", json={"current_password": "secret123", "new_password": "123"}, headers=auth_header
+    )
+    assert res.status_code == 400

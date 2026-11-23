@@ -12,6 +12,6 @@ class AppConfig {
   /// Render's free tier can take a while to wake up from sleep.
   static const Duration requestTimeout = Duration(seconds: 45);
 
-  /// How long the robot pauses on each cell during playback.
-  static const Duration stepDuration = Duration(milliseconds: 450);
+  /// Shown on the About section of parent settings. Keep in step with pubspec.yaml.
+  static const String version = '1.1.0';
 }

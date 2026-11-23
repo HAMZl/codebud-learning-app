@@ -29,6 +29,13 @@ class PuzzleService {
     return cats.map((k, v) => MapEntry(k, CategoryProgress.fromJson(v as Map<String, dynamic>)));
   }
 
+  /// Erases progress for one category, or for everything when [category] is null.
+  Future<int> resetProgress({String? category}) async {
+    final query = category == null ? '' : '?category=$category';
+    final data = await _api.delete('/api/progress$query', auth: true);
+    return data['removed'] as int? ?? 0;
+  }
+
   /// Sends the winning program. The server replays it and decides the stars.
   Future<ProgressResult> saveProgress(Puzzle puzzle, List<CommandItem> program) async {
     final data = await _api.post(

@@ -36,6 +36,11 @@ class ApiClient {
   Future<Map<String, dynamic>> post(String path, Map<String, dynamic> body, {bool auth = false}) =>
       _send('POST', path, body: body, auth: auth);
 
+  Future<Map<String, dynamic>> patch(String path, Map<String, dynamic> body, {bool auth = false}) =>
+      _send('PATCH', path, body: body, auth: auth);
+
+  Future<Map<String, dynamic>> delete(String path, {bool auth = false}) => _send('DELETE', path, auth: auth);
+
   Future<Map<String, dynamic>> _send(String method, String path,
       {Map<String, dynamic>? body, required bool auth}) async {
     final headers = <String, String>{'Content-Type': 'application/json'};
@@ -48,10 +53,9 @@ class ApiClient {
     final uri = Uri.parse('$_baseUrl$path');
     http.Response res;
     try {
-      final request = method == 'GET'
-          ? _http.get(uri, headers: headers)
-          : _http.post(uri, headers: headers, body: jsonEncode(body ?? const {}));
-      res = await request.timeout(AppConfig.requestTimeout);
+      final request = http.Request(method, uri)..headers.addAll(headers);
+      if (body != null) request.body = jsonEncode(body);
+      res = await http.Response.fromStream(await _http.send(request).timeout(AppConfig.requestTimeout));
     } on TimeoutException {
       throw const ApiException('The server is taking too long. Please try again.');
     } catch (_) {

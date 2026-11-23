@@ -15,6 +15,8 @@ class AppTheme {
   static ThemeData light() {
     final scheme = ColorScheme.fromSeed(seedColor: AppColors.primary, primary: AppColors.primary);
     final buttonShape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(12));
+    // Start from the theme's own text style so button labels keep the app font.
+    final buttonText = Typography.material2021().black.labelLarge!.copyWith(fontSize: 18, fontWeight: FontWeight.bold);
     return ThemeData(
       colorScheme: scheme,
       scaffoldBackgroundColor: Colors.white,
@@ -29,7 +31,7 @@ class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          textStyle: buttonText,
           shape: buttonShape,
         ),
       ),
@@ -38,7 +40,7 @@ class AppTheme {
           foregroundColor: AppColors.primary,
           side: const BorderSide(color: AppColors.primary, width: 2),
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          textStyle: buttonText,
           shape: buttonShape,
         ),
       ),

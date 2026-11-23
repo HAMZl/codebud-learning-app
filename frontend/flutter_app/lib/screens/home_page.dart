@@ -17,6 +17,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  /// True while this page is the one on screen (not covered, and not being removed).
+  bool get _isVisible => mounted && (ModalRoute.of(context)?.isCurrent ?? false);
+
   String? _childName;
   Map<String, CategoryProgress> _progress = const {};
   bool _loaded = false;
@@ -45,13 +48,12 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _openCategory(PuzzleCategory category) async {
     await Navigator.pushNamed(context, Routes.category, arguments: category.id);
-    if (mounted) _load(); // refresh the stars when the player comes back
+    if (_isVisible) _load(); // refresh the stars when the player comes back
   }
 
-  Future<void> _logout() async {
-    await AppScope.of(context).auth.logout();
-    if (!mounted) return;
-    Navigator.pushNamedAndRemoveUntil(context, Routes.launch, (_) => false);
+  Future<void> _openSettings() async {
+    await Navigator.pushNamed(context, Routes.settings);
+    if (_isVisible) _load(); // the child's name or progress may have changed
   }
 
   @override
@@ -66,7 +68,12 @@ class _HomePageState extends State<HomePage> {
         ),
         actions: [
           const MuteButton(),
-          IconButton(tooltip: 'Log out', icon: const Icon(Icons.logout), onPressed: _logout)
+          IconButton(
+            key: const Key('open-settings'),
+            tooltip: 'Settings',
+            icon: const Icon(Icons.settings),
+            onPressed: _openSettings,
+          ),
         ],
       ),
       body: SafeArea(

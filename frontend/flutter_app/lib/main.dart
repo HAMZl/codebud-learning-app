@@ -4,8 +4,9 @@ import 'routes.dart';
 import 'services/app_scope.dart';
 import 'theme/app_theme.dart';
 
-void main() {
-  runApp(AppScope.production(child: const CodeBudApp()));
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(await AppScope.production(child: const CodeBudApp()));
 }
 
 class CodeBudApp extends StatelessWidget {

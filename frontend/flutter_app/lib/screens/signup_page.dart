@@ -138,8 +138,9 @@ class _SignUpPageState extends State<SignUpPage> {
                         ? const Center(child: CircularProgressIndicator())
                         : ElevatedButton(onPressed: _submit, child: const Text('Sign Up')),
                     const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         const Text('Already have an account? '),
                         TextButton(

@@ -17,6 +17,9 @@ class PuzzleSelectionPage extends StatefulWidget {
 }
 
 class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
+  /// True while this page is the one on screen (not covered, and not being removed).
+  bool get _isVisible => mounted && (ModalRoute.of(context)?.isCurrent ?? false);
+
   static final _cardColors = [
     Colors.pink.shade300,
     Colors.teal.shade300,
@@ -60,7 +63,7 @@ class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
 
   Future<void> _open(PuzzleSummary puzzle) async {
     await Navigator.pushNamed(context, Routes.puzzle, arguments: puzzle.id);
-    if (mounted) _load();
+    if (_isVisible) _load();
   }
 
   @override
