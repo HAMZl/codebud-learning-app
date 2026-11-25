@@ -13,5 +13,8 @@ class AppConfig {
   static const Duration requestTimeout = Duration(seconds: 45);
 
   /// Shown on the About section of parent settings. Keep in step with pubspec.yaml.
-  static const String version = '1.1.0';
+  static const String version = '1.2.0';
+
+  static const String author = 'HAMZl';
+  static const String authorUrl = 'https://github.com/HAMZl';
 }

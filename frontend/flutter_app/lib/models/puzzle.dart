@@ -16,6 +16,10 @@ class Puzzle {
   /// The next puzzle in the same category, if there is one.
   final PuzzleRef? next;
 
+  /// Extra boards where the rocks (and maybe the star) are somewhere else.
+  /// One program has to solve every board, which is what makes If blocks useful.
+  final List<BoardVariant> variants;
+
   const Puzzle({
     required this.id,
     required this.title,
@@ -26,7 +30,24 @@ class Puzzle {
     required this.obstacles,
     required this.par,
     this.next,
+    this.variants = const [],
   });
+
+  /// This puzzle's main board followed by its variants, each as a puzzle of its own.
+  List<Puzzle> get boards => [
+        this,
+        for (final v in variants)
+          Puzzle(
+            id: id,
+            title: title,
+            category: category,
+            gridSize: gridSize,
+            start: v.start ?? start,
+            goal: v.goal ?? goal,
+            obstacles: v.obstacles,
+            par: par,
+          ),
+      ];
 
   factory Puzzle.fromJson(Map<String, dynamic> j) => Puzzle(
         id: j['id'] as String,
@@ -38,9 +59,25 @@ class Puzzle {
         obstacles: (j['obstacles'] as List? ?? const []).map((e) => Point.fromList(e as List)).toList(),
         par: (j['par'] as int?) ?? 6,
         next: j['next'] is Map<String, dynamic> ? PuzzleRef.fromJson(j['next'] as Map<String, dynamic>) : null,
+        variants:
+            (j['variants'] as List? ?? const []).map((v) => BoardVariant.fromJson(v as Map<String, dynamic>)).toList(),
       );
 
   bool isBlocked(Point p) => p.row < 0 || p.col < 0 || p.row >= gridSize || p.col >= gridSize || obstacles.contains(p);
+}
+
+class BoardVariant {
+  final Point? start;
+  final Point? goal;
+  final List<Point> obstacles;
+
+  const BoardVariant({this.start, this.goal, this.obstacles = const []});
+
+  factory BoardVariant.fromJson(Map<String, dynamic> j) => BoardVariant(
+        start: j['start'] is List ? Point.fromList(j['start'] as List) : null,
+        goal: j['goal'] is List ? Point.fromList(j['goal'] as List) : null,
+        obstacles: (j['obstacles'] as List? ?? const []).map((e) => Point.fromList(e as List)).toList(),
+      );
 }
 
 class PuzzleRef {

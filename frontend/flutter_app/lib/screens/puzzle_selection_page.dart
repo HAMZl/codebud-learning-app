@@ -20,17 +20,17 @@ class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
   /// True while this page is the one on screen (not covered, and not being removed).
   bool get _isVisible => mounted && (ModalRoute.of(context)?.isCurrent ?? false);
 
-  static final _cardColors = [
-    Colors.pink.shade300,
-    Colors.teal.shade300,
-    Colors.orange.shade300,
-    Colors.blue.shade300,
-    Colors.purple.shade300,
-    Colors.red.shade300,
-    Colors.green.shade300,
-    Colors.cyan.shade300,
-    Colors.amber.shade300,
-    Colors.indigo.shade300,
+  static const _cardColors = [
+    Color(0xFF38BDF8),
+    Color(0xFF2DD4BF),
+    Color(0xFFA78BFA),
+    Color(0xFFFB7185),
+    Color(0xFFFBBF24),
+    Color(0xFF4ADE80),
+    Color(0xFF60A5FA),
+    Color(0xFFF472B6),
+    Color(0xFF34D399),
+    Color(0xFFFB923C),
   ];
 
   List<PuzzleSummary>? _puzzles;
@@ -69,8 +69,13 @@ class _PuzzleSelectionPageState extends State<PuzzleSelectionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('${widget.category.title} Puzzles')),
-      body: _body(),
+      appBar: AppBar(
+        title: Text('${widget.category.title} Puzzles'),
+        backgroundColor: widget.category.color,
+        foregroundColor: Colors.white,
+        titleTextStyle: Theme.of(context).appBarTheme.titleTextStyle?.copyWith(color: Colors.white),
+      ),
+      body: AppBackground(child: _body()),
     );
   }
 
@@ -132,11 +137,9 @@ class _LevelCard extends StatelessWidget {
       opacity: locked ? 0.45 : 1,
       child: Material(
         color: Colors.white,
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: Colors.grey.shade300),
-        ),
+        elevation: 3,
+        shadowColor: color.withValues(alpha: 0.4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: locked ? null : onTap,
@@ -145,11 +148,25 @@ class _LevelCard extends StatelessWidget {
               Expanded(
                 child: Container(
                   width: double.infinity,
-                  color: color,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color.lerp(color, Colors.white, 0.2)!, color],
+                    ),
+                  ),
                   alignment: Alignment.center,
                   child: locked
-                      ? const Icon(Icons.lock, size: 40, color: Colors.black54)
-                      : Text('$level', style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold)),
+                      ? const Icon(Icons.lock, size: 40, color: Colors.white)
+                      : Text(
+                          '$level',
+                          style: const TextStyle(
+                            fontSize: 44,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            shadows: [Shadow(color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 2))],
+                          ),
+                        ),
                 ),
               ),
               Padding(

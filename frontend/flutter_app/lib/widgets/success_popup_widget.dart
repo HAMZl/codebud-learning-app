@@ -3,8 +3,10 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../models/family.dart';
 import '../services/sound_service.dart';
 import '../theme/app_theme.dart';
+import 'robot_avatar.dart';
 
 class SuccessPopup extends StatefulWidget {
   const SuccessPopup({
@@ -16,7 +18,11 @@ class SuccessPopup extends StatefulWidget {
     required this.onLevels,
     this.onNext,
     this.sounds,
+    this.robot,
   });
+
+  /// The child's robot, which cheers along. Null on the landing page demo.
+  final RobotLook? robot;
 
   final String title;
   final int earnedStars;
@@ -76,8 +82,8 @@ class _SuccessPopupState extends State<SuccessPopup> {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: const BorderSide(color: Colors.black, width: 4),
+        borderRadius: BorderRadius.circular(28),
+        side: const BorderSide(color: AppColors.sunshine, width: 4),
       ),
       insetPadding: const EdgeInsets.symmetric(horizontal: 40),
       backgroundColor: Colors.white,
@@ -88,6 +94,16 @@ class _SuccessPopupState extends State<SuccessPopup> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (widget.robot != null) ...[
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 700),
+                  curve: Curves.elasticOut,
+                  builder: (context, v, avatar) => Transform.scale(scale: v, child: avatar),
+                  child: RobotAvatar(look: widget.robot!, size: 72),
+                ),
+                const SizedBox(height: 12),
+              ],
               Text(
                 widget.title,
                 textAlign: TextAlign.center,
@@ -111,7 +127,12 @@ class _SuccessPopupState extends State<SuccessPopup> {
                 }),
               ),
               const SizedBox(height: 24),
-              FittedBox(child: Text(_cheer, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900))),
+              FittedBox(
+                child: Text(
+                  _cheer,
+                  style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: AppColors.primary),
+                ),
+              ),
               const SizedBox(height: 32),
               Wrap(
                 spacing: 12,
@@ -135,9 +156,9 @@ class _SuccessPopupState extends State<SuccessPopup> {
         message: tooltip,
         child: Material(
           color: AppColors.primary,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(16),
           child: InkWell(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(16),
             onTap: onTap,
             child: Padding(
               padding: const EdgeInsets.all(14),

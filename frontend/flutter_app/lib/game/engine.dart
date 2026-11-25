@@ -9,6 +9,8 @@ import '../models/puzzle.dart';
 ///   direction is the target: an obstacle (a rock or the edge), an empty
 ///   cell, or the goal.
 /// * The run ends as soon as the robot reaches the goal.
+/// * A puzzle may have several boards. The program must solve every one of them
+///   ([GameEngine.runPuzzle]).
 /// * Stars count every block, nested blocks included. At or under par earns 3,
 ///   par + 2 earns 2, and any other solution earns 1.
 enum RunStatus { success, wall, obstacle, incomplete }
@@ -19,7 +21,18 @@ class RunResult {
   final int blocks;
   final int stars;
 
-  const RunResult({required this.status, required this.path, required this.blocks, required this.stars});
+  /// From [GameEngine.runPuzzle]: the result on each board, and which one [path] belongs to.
+  final List<RunResult> boards;
+  final int board;
+
+  const RunResult({
+    required this.status,
+    required this.path,
+    required this.blocks,
+    required this.stars,
+    this.boards = const [],
+    this.board = 0,
+  });
 
   bool get solved => status == RunStatus.success;
 
@@ -47,6 +60,23 @@ class GameEngine {
     return 1;
   }
 
+  /// Runs [program] on every board of [puzzle]. The result is the first board that
+  /// fails, or the first board if all of them are solved. Stars need every board.
+  static RunResult runPuzzle(Puzzle puzzle, List<CommandItem> program) {
+    final results = [for (final board in puzzle.boards) run(board, program)];
+    final failed = results.indexWhere((r) => !r.solved);
+    final shown = results[failed < 0 ? 0 : failed];
+    return RunResult(
+      status: shown.status,
+      path: shown.path,
+      blocks: shown.blocks,
+      stars: failed < 0 ? shown.stars : 0,
+      boards: results,
+      board: failed < 0 ? 0 : failed,
+    );
+  }
+
+  /// Runs [program] on one board.
   static RunResult run(Puzzle puzzle, List<CommandItem> program) {
     var pos = puzzle.start;
     final path = <Point>[pos];

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../game/engine.dart';
+import '../models/category.dart';
 import '../models/command.dart';
+import '../models/family.dart';
 import '../models/puzzle.dart';
 import '../routes.dart';
 import '../services/api_client.dart';
@@ -77,6 +79,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         title: puzzle.title,
         earnedStars: stars,
         sounds: scope.sounds,
+        robot: scope.auth.activeChild?.robot,
         onHome: () => Navigator.of(context).popUntil(ModalRoute.withName(Routes.home)),
         onRetry: () => Navigator.pop(dialogContext),
         onLevels: () {
@@ -99,8 +102,9 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(puzzle?.title ?? ''),
-        backgroundColor: AppColors.primary,
+        backgroundColor: PuzzleCategory.byId(puzzle?.category ?? '').color,
         foregroundColor: Colors.white,
+        titleTextStyle: Theme.of(context).appBarTheme.titleTextStyle?.copyWith(color: Colors.white),
         actions: const [MuteButton()],
       ),
       body: puzzle == null
@@ -110,16 +114,19 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                       onPressed: _load, icon: const Icon(Icons.refresh), label: const Text('Try again'))
                   : const CircularProgressIndicator(),
             )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 720),
-                  child: PuzzlePlayground(
-                    puzzle: puzzle,
-                    onSolved: _onSolved,
-                    stepDuration: widget.stepDuration,
-                    initialProgram: widget.initialProgram,
+          : AppBackground(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 720),
+                    child: PuzzlePlayground(
+                      puzzle: puzzle,
+                      robot: AppScope.of(context).auth.activeChild?.robot ?? const RobotLook(),
+                      onSolved: _onSolved,
+                      stepDuration: widget.stepDuration,
+                      initialProgram: widget.initialProgram,
+                    ),
                   ),
                 ),
               ),

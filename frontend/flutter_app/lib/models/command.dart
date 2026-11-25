@@ -19,7 +19,7 @@ class BlockType {
         left => Icons.arrow_back,
         right => Icons.arrow_forward,
         loop => Icons.loop,
-        ifBlock => Icons.help_outline,
+        ifBlock => Icons.call_split,
         _ => Icons.help,
       };
 }
@@ -33,6 +33,13 @@ class Condition {
         'obstacle' => Icons.terrain,
         'goal' => Icons.star,
         _ => Icons.crop_square,
+      };
+
+  /// Words for grown-ups and screen readers. Children go by the pictures.
+  static String targetLabel(String target) => switch (target) {
+        'obstacle' => 'a rock or wall',
+        'goal' => 'the star',
+        _ => 'an empty space',
       };
 
   static IconData directionIcon(String direction) => BlockType.icon(

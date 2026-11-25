@@ -21,6 +21,10 @@ Rules:
     ``empty`` (a free cell, which includes the goal), and ``goal``. An ``If``
     body may only hold moves.
   * The run stops as soon as the robot reaches the goal.
+  * A puzzle can have ``variants``: extra boards of the same size where the
+    rocks (and sometimes the start or the goal) are somewhere else. One
+    program must solve every board. A fixed list of moves usually can't, so
+    these puzzles are where ``If`` blocks earn their place.
   * Stars reward short programs. Every block counts once, including the blocks
     nested in a Loop or If. At or under ``par`` earns 3 stars, up to ``par + 2``
     earns 2, and any other solution earns 1. Finishing a puzzle never earns 0.
@@ -86,12 +90,31 @@ class Board:
         return not self.in_bounds(cell) or cell in self.obstacles
 
 
+def boards_of(puzzle: dict[str, Any]) -> list[Board]:
+    """The puzzle's main board followed by its variants. A program has to solve all of them."""
+    main = Board.from_puzzle(puzzle)
+    boards = [main]
+    for variant in puzzle.get("variants") or []:
+        boards.append(
+            Board(
+                size=main.size,
+                start=_cell(variant["start"]) if "start" in variant else main.start,
+                goal=_cell(variant["goal"]) if "goal" in variant else main.goal,
+                obstacles=frozenset(_cell(o) for o in variant.get("obstacles", [])),
+            )
+        )
+    return boards
+
+
 @dataclass
 class RunResult:
     status: str
     path: list[Cell] = field(default_factory=list)
     blocks: int = 0
     stars: int = 0
+    # Set by run_puzzle: which board ``path`` belongs to, and the result on every board.
+    board: int = 0
+    boards: list["RunResult"] = field(default_factory=list)
 
     @property
     def solved(self) -> bool:
@@ -111,6 +134,9 @@ class RunResult:
         }
         if self.hint:
             data["hint"] = self.hint
+        if len(self.boards) > 1:
+            data["board"] = self.board
+            data["boards"] = [{"status": r.status, "path": [list(c) for c in r.path]} for r in self.boards]
         return data
 
 
@@ -239,6 +265,66 @@ def run(board: Board, program: list[dict[str, Any]], par: int | None = None) -> 
     blocks = count_blocks(program)
     stars = stars_for(blocks, par) if status == SUCCESS and par is not None else 0
     return RunResult(status=status, path=path, blocks=blocks, stars=stars)
+
+
+def run_puzzle(puzzle: dict[str, Any], program: list[dict[str, Any]], par: int | None = None) -> RunResult:
+    """Run a normalized program on every board of a puzzle.
+
+    The result describes the first board the program fails on, or the first
+    board when it solves them all. Stars are only awarded when every board is solved.
+    """
+    results = [run(board, program, par) for board in boards_of(puzzle)]
+    failed = next((i for i, r in enumerate(results) if not r.solved), None)
+    shown = results[failed or 0]
+    return RunResult(
+        status=shown.status,
+        path=shown.path,
+        blocks=shown.blocks,
+        stars=shown.stars if failed is None else 0,
+        board=failed or 0,
+        boards=results,
+    )
+
+
+def shortest_common_path(boards: list[Board], max_len: int = 60) -> list[str] | None:
+    """Return a shortest list of plain moves that solves every board, or None if there is none.
+
+    The robots on all boards follow the same moves. A board is finished once its
+    robot reaches the goal, and a move that bumps into anything on an unfinished
+    board ends the search down that branch.
+    """
+    from collections import deque
+
+    State = tuple[Cell | None, ...]
+    start: State = tuple(None if b.start == b.goal else b.start for b in boards)
+    came_from: dict[State, tuple[State, str] | None] = {start: None}
+    queue = deque([(start, 0)])
+    while queue:
+        state, depth = queue.popleft()
+        if all(pos is None for pos in state):
+            moves: list[str] = []
+            while (prev := came_from[state]) is not None:
+                state, move = prev
+                moves.append(move)
+            return moves[::-1]
+        if depth >= max_len:
+            continue
+        for move, (dr, dc) in MOVES.items():
+            nxt: list[Cell | None] = []
+            for board, pos in zip(boards, state):
+                if pos is None:
+                    nxt.append(None)
+                    continue
+                cell = (pos[0] + dr, pos[1] + dc)
+                if board.is_blocked(cell):
+                    break
+                nxt.append(None if cell == board.goal else cell)
+            else:
+                key = tuple(nxt)
+                if key not in came_from:
+                    came_from[key] = (state, move)
+                    queue.append((key, depth + 1))
+    return None
 
 
 def shortest_path(board: Board) -> list[str] | None:

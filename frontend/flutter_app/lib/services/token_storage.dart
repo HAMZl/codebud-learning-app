@@ -1,10 +1,12 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Where the session is kept. It is an interface so tests can use [MemoryTokenStorage].
+///
+/// Only the account token is stored. Which child is playing is chosen again each
+/// time the app opens, and the parent unlock is kept in memory only.
 abstract class TokenStorage {
   Future<String?> readToken();
-  Future<String?> readChildName();
-  Future<void> save({required String token, String? childName});
+  Future<void> save({required String token});
   Future<void> clear();
 }
 
@@ -13,48 +15,32 @@ class SecureTokenStorage implements TokenStorage {
 
   final FlutterSecureStorage _storage;
   static const _tokenKey = 'jwt_token';
-  static const _childNameKey = 'child_name';
+  static const _legacyChildNameKey = 'child_name';
 
   @override
   Future<String?> readToken() => _storage.read(key: _tokenKey);
 
   @override
-  Future<String?> readChildName() => _storage.read(key: _childNameKey);
-
-  @override
-  Future<void> save({required String token, String? childName}) async {
-    await _storage.write(key: _tokenKey, value: token);
-    if (childName != null) await _storage.write(key: _childNameKey, value: childName);
-  }
+  Future<void> save({required String token}) => _storage.write(key: _tokenKey, value: token);
 
   @override
   Future<void> clear() async {
     await _storage.delete(key: _tokenKey);
-    await _storage.delete(key: _childNameKey);
+    await _storage.delete(key: _legacyChildNameKey);
   }
 }
 
 class MemoryTokenStorage implements TokenStorage {
-  MemoryTokenStorage({this.token, this.childName});
+  MemoryTokenStorage({this.token});
 
   String? token;
-  String? childName;
 
   @override
   Future<String?> readToken() async => token;
 
   @override
-  Future<String?> readChildName() async => childName;
+  Future<void> save({required String token}) async => this.token = token;
 
   @override
-  Future<void> save({required String token, String? childName}) async {
-    this.token = token;
-    this.childName = childName ?? this.childName;
-  }
-
-  @override
-  Future<void> clear() async {
-    token = null;
-    childName = null;
-  }
+  Future<void> clear() async => token = null;
 }

@@ -1,5 +1,6 @@
 def test_list_puzzles_in_order_with_progress(client, auth_header, db):
-    db.progress.insert_one({"username": "tommy", "puzzle_id": "seq2", "stars": 2})
+    child_id = db.users.find_one({"username": "tommy"})["children"][0]["id"]
+    db.progress.insert_one({"username": "tommy", "child_id": child_id, "puzzle_id": "seq2", "stars": 2})
 
     res = client.get("/api/puzzles/sequence", headers=auth_header)
     assert res.status_code == 200

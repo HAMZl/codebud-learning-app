@@ -1,12 +1,13 @@
 from datetime import datetime, timezone
 
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask_jwt_extended import jwt_required
 from pymongo import ReturnDocument
 
 from .. import engine
 from ..db import PROGRESS, PUZZLES, get_db
 from ..errors import ApiError
+from ..family import current_user, find_child, parent_required
 from ..validation import int_in_range, json_body
 from .puzzles import CATEGORIES, find_puzzle, parse_program
 
@@ -21,13 +22,16 @@ def save_progress():
     New clients send the ``program`` they ran. The server replays it and
     computes the stars itself, so clients can't award stars they didn't earn.
     Older clients send ``stars`` directly; that value is clamped to 0-3.
+    ``child_id`` says whose progress it is. Without it, the first child's.
     """
     data = json_body()
+    user = current_user()
+    child = find_child(user, data.get("child_id"))
     puzzle = find_puzzle(data.get("puzzle_id"))
 
     if "program" in data:
         program = parse_program(data)
-        result = engine.run(engine.Board.from_puzzle(puzzle), program, puzzle.get("par"))
+        result = engine.run_puzzle(puzzle, program, puzzle.get("par"))
         if not result.solved:
             raise ApiError("That program doesn't solve the puzzle yet.", code=422, **result.to_dict())
         stars = result.stars
@@ -36,7 +40,7 @@ def save_progress():
 
     now = datetime.now(timezone.utc)
     before = get_db()[PROGRESS].find_one_and_update(
-        {"username": get_jwt_identity(), "puzzle_id": puzzle["id"]},
+        {"username": user["username"], "child_id": child["id"], "puzzle_id": puzzle["id"]},
         {
             "$max": {"stars": stars},
             "$set": {"status": "completed", "last_played_at": now},
@@ -59,7 +63,9 @@ def save_progress():
 @bp.get("/progress")
 @jwt_required()
 def progress_summary():
-    """Per-category totals for the home screen."""
+    """Per-category totals for the home screen, for ``?child_id=`` (default: the first child)."""
+    user = current_user()
+    child = find_child(user, request.args.get("child_id"))
     db = get_db()
     totals = {c: {"total": 0, "completed": 0, "stars": 0, "max_stars": 0} for c in CATEGORIES}
     category_of = {}
@@ -69,7 +75,10 @@ def progress_summary():
             totals[p["category"]]["total"] += 1
             totals[p["category"]]["max_stars"] += 3
 
-    for row in db[PROGRESS].find({"username": get_jwt_identity()}, {"_id": 0, "puzzle_id": 1, "stars": 1}):
+    rows = db[PROGRESS].find(
+        {"username": user["username"], "child_id": child["id"]}, {"_id": 0, "puzzle_id": 1, "stars": 1}
+    )
+    for row in rows:
         category = category_of.get(row["puzzle_id"])
         if category:
             totals[category]["completed"] += 1
@@ -79,11 +88,13 @@ def progress_summary():
 
 
 @bp.delete("/progress")
-@jwt_required()
+@parent_required
 def reset_progress():
-    """Erase the player's progress, either everything or one ``?category=``."""
+    """Erase one child's progress (``?child_id=``), either everything or one ``?category=``."""
+    user = current_user()
+    child = find_child(user, request.args.get("child_id"))
     db = get_db()
-    query: dict = {"username": get_jwt_identity()}
+    query: dict = {"username": user["username"], "child_id": child["id"]}
     category = request.args.get("category")
     if category:
         if category not in CATEGORIES:

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/demo_puzzles.dart';
 import '../models/command.dart';
 import '../theme/app_theme.dart';
+import 'command_block_widget.dart';
 import 'program_block.dart';
 import 'puzzle_grid.dart';
 
@@ -109,43 +110,47 @@ class ConceptPreview extends StatelessWidget {
 
 /// A small rounded label, e.g. "Ages 4-7".
 class Pill extends StatelessWidget {
-  const Pill({super.key, required this.icon, required this.label});
+  const Pill({super.key, required this.icon, required this.label, this.color = AppColors.primary});
   final IconData icon;
   final String label;
+  final Color color;
 
   @override
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: AppColors.primaryLight,
+          color: color.withValues(alpha: 0.14),
           borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: color.withValues(alpha: 0.35)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: Colors.black87),
+            Icon(icon, size: 16, color: color),
             const SizedBox(width: 6),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.ink)),
           ],
         ),
       );
 }
 
 /// A row of block icons, used to illustrate "drag blocks".
+///
+/// It uses the small palette squares in a single row that scales down to fit, so it
+/// never grows taller than the space it is given.
 class BlockStrip extends StatelessWidget {
   const BlockStrip({super.key});
 
   @override
   Widget build(BuildContext context) => IgnorePointer(
-        child: Wrap(
-          spacing: 2,
-          runSpacing: 6,
-          alignment: WrapAlignment.center,
-          children: [
-            for (final t in [...BlockType.moves, BlockType.loop, BlockType.ifBlock])
-              ProgramBlock(
-                  item: CommandItem(type: t), selected: null, onSelect: (_) {}, onChanged: () {}, enabled: false),
-          ],
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final t in [...BlockType.moves, BlockType.loop, BlockType.ifBlock]) CommandBlock(type: t, size: 46),
+            ],
+          ),
         ),
       );
 }

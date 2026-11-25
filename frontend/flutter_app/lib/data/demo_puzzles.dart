@@ -62,16 +62,19 @@ final demoPuzzles = <DemoPuzzle>[
   ),
   DemoPuzzle(
     concept: 'Conditionals',
-    blurb: 'Teach the robot to look ahead and decide what to do.',
+    blurb: 'The rocks move! Teach the robot to look before it steps, so one program works on every board.',
     puzzle: const Puzzle(
-      id: 'cond1',
-      title: 'Look Ahead',
+      id: 'cond2',
+      title: 'Rocks on the Move',
       category: 'conditional',
       gridSize: 5,
       start: Point(0, 0),
       goal: Point(2, 4),
-      obstacles: [Point(0, 2), Point(1, 3)],
+      obstacles: [Point(0, 2), Point(1, 0), Point(1, 3)],
       par: 4,
+      variants: [
+        BoardVariant(start: Point(0, 0), goal: Point(2, 4), obstacles: [Point(0, 1), Point(1, 2)]),
+      ],
     ),
     solution: () => [
       CommandItem(type: BlockType.loop, repeat: 4, body: [

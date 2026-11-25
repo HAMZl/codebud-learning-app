@@ -13,13 +13,13 @@ def test_signup_success(signup, db):
 
     stored = db.users.find_one({"username": "tommy"})
     assert stored["password"] != USER["password"]  # hashed
-    assert stored["child_age"] == 6
+    assert [(c["name"], c["age"]) for c in stored["children"]] == [("Tommy", 6)]
 
 
 def test_signup_accepts_age_as_string(signup, db):
     # The Flutter text field sends the age as a string.
     assert signup(child_age="5").status_code == 200
-    assert db.users.find_one({"username": "tommy"})["child_age"] == 5
+    assert db.users.find_one({"username": "tommy"})["children"][0]["age"] == 5
 
 
 def test_signup_duplicate_username(signup):
@@ -100,37 +100,44 @@ def test_me_includes_parent_details(client, auth_header):
     assert res.json["email"] == "jane@example.com"
 
 
-def test_update_profile(client, auth_header, db):
-    res = client.patch("/api/me", json={"child_name": "Tom", "child_age": "7"}, headers=auth_header)
+def test_update_profile(client, parent_header, db):
+    res = client.patch("/api/me", json={"parent_name": "Janet", "email": "J@Example.com"}, headers=parent_header)
+    assert res.status_code == 200
+    stored = db.users.find_one({"username": "tommy"})
+    assert (stored["parent_name"], stored["email"]) == ("Janet", "j@example.com")
+
+
+def test_update_profile_legacy_child_fields_change_the_first_child(client, parent_header, db):
+    res = client.patch("/api/me", json={"child_name": "Tom", "child_age": "7"}, headers=parent_header)
     assert res.status_code == 200
     assert res.json["child_name"] == "Tom"
-    stored = db.users.find_one({"username": "tommy"})
-    assert (stored["child_name"], stored["child_age"], stored["parent_name"]) == ("Tom", 7, "Jane")
+    child = db.users.find_one({"username": "tommy"})["children"][0]
+    assert (child["name"], child["age"]) == ("Tom", 7)
 
 
 @pytest.mark.parametrize("body", [{}, {"child_age": 99}, {"email": "nope"}, {"child_name": " "}])
-def test_update_profile_validation(client, auth_header, body):
-    assert client.patch("/api/me", json=body, headers=auth_header).status_code == 400
+def test_update_profile_validation(client, parent_header, body):
+    assert client.patch("/api/me", json=body, headers=parent_header).status_code == 400
 
 
-def test_change_password(client, auth_header):
+def test_change_password(client, parent_header):
     res = client.post(
-        "/api/me/password", json={"current_password": "secret123", "new_password": "newpass1"}, headers=auth_header
+        "/api/me/password", json={"current_password": "secret123", "new_password": "newpass1"}, headers=parent_header
     )
     assert res.status_code == 200
     assert client.post("/login", json={"username": "tommy", "password": "secret123"}).status_code == 401
     assert client.post("/login", json={"username": "tommy", "password": "newpass1"}).status_code == 200
 
 
-def test_change_password_requires_current_password(client, auth_header):
+def test_change_password_requires_current_password(client, parent_header):
     res = client.post(
-        "/api/me/password", json={"current_password": "wrong", "new_password": "newpass1"}, headers=auth_header
+        "/api/me/password", json={"current_password": "wrong", "new_password": "newpass1"}, headers=parent_header
     )
     assert res.status_code == 403
 
 
-def test_change_password_rejects_short_password(client, auth_header):
+def test_change_password_rejects_short_password(client, parent_header):
     res = client.post(
-        "/api/me/password", json={"current_password": "secret123", "new_password": "123"}, headers=auth_header
+        "/api/me/password", json={"current_password": "secret123", "new_password": "123"}, headers=parent_header
     )
     assert res.status_code == 400

@@ -141,4 +141,61 @@ void main() {
       });
     }
   });
+
+  group('puzzles with several boards', () {
+    // Two 3x3 boards: the rock is to the right of the start on the first, below it on the second.
+    const twoBoards = Puzzle(
+      id: 'm',
+      title: 'Moving rock',
+      category: 'conditional',
+      gridSize: 3,
+      start: Point(0, 0),
+      goal: Point(2, 2),
+      obstacles: [Point(0, 1)],
+      par: 4,
+      variants: [
+        BoardVariant(obstacles: [Point(1, 0)])
+      ],
+    );
+
+    test('boards share the size, start and goal unless the variant changes them', () {
+      final boards = twoBoards.boards;
+      expect(boards, hasLength(2));
+      expect(boards[1].start, const Point(0, 0));
+      expect(boards[1].obstacles, [const Point(1, 0)]);
+    });
+
+    test('a program must solve every board', () {
+      final result = GameEngine.runPuzzle(twoBoards, moves(['Down', 'Down', 'Right', 'Right']));
+      expect(result.solved, isFalse);
+      expect(result.board, 1);
+      expect(result.boards.map((r) => r.status), [RunStatus.success, RunStatus.obstacle]);
+      expect(result.stars, 0);
+    });
+
+    test('an If block can solve both boards', () {
+      // If the way right is blocked, go down first. If the way down is blocked, go right first.
+      final program = [
+        CommandItem(type: BlockType.ifBlock, direction: 'right', body: moves(['Down', 'Down', 'Right', 'Right'])),
+        CommandItem(type: BlockType.ifBlock, direction: 'down', body: moves(['Right', 'Right', 'Down', 'Down'])),
+      ];
+      final result = GameEngine.runPuzzle(twoBoards, program);
+      expect(result.boards.map((r) => r.status), everyElement(RunStatus.success));
+      expect(result.solved, isTrue);
+    });
+
+    test('the shipped multi-board levels are solved by their reference solutions', () {
+      final shipped = (jsonDecode(File('../../database/puzzles.json').readAsStringSync()) as List)
+          .cast<Map<String, dynamic>>()
+          .where((p) => p['variants'] != null);
+      expect(shipped, isNotEmpty);
+      for (final json in shipped) {
+        final puzzle = Puzzle.fromJson(json);
+        final program = (json['solution'] as List).map((b) => fromJson(b as Map<String, dynamic>)).toList();
+        final result = GameEngine.runPuzzle(puzzle, program);
+        expect(result.solved, isTrue, reason: '${puzzle.id} fails on board ${result.board + 1}');
+        expect(result.stars, 3, reason: puzzle.id);
+      }
+    });
+  });
 }

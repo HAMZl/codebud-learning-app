@@ -55,3 +55,11 @@ def auth_header(client, signup):
     res = client.post("/login", json={"username": USER["username"], "password": USER["password"]})
     assert res.status_code == 200
     return {"Authorization": f"Bearer {res.json['token']}"}
+
+
+@pytest.fixture
+def parent_header(client, auth_header):
+    """Headers with a parent token, as if a grown-up had re-entered the password."""
+    res = client.post("/api/parent/unlock", json={"password": USER["password"]}, headers=auth_header)
+    assert res.status_code == 200
+    return {"Authorization": f"Bearer {res.json['parent_token']}"}

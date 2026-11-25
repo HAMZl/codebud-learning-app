@@ -71,9 +71,9 @@ class _ContainerBlock extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 3),
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isSelected ? AppColors.selected : color, width: isSelected ? 3 : 1.5),
+          color: color.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: isSelected ? AppColors.selected : color, width: isSelected ? 4 : 2),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -90,9 +90,9 @@ class _ContainerBlock extends StatelessWidget {
                 constraints: const BoxConstraints(minWidth: 64, minHeight: 62),
                 padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
-                  color: candidates.isNotEmpty ? color.withValues(alpha: 0.25) : Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: color),
+                  color: candidates.isNotEmpty ? color.withValues(alpha: 0.3) : Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: color, width: 1.5),
                 ),
                 child: item.body.isEmpty
                     ? Icon(Icons.add, color: color.withValues(alpha: 0.6))
@@ -158,8 +158,9 @@ class _LoopControls extends StatelessWidget {
   }
 }
 
-/// The If condition, shown as icons: tap the first to change what to look for
-/// (rock / empty / star) and the second to change the direction.
+/// The If condition, read as a little picture sentence: "look [direction], is there a [rock]?"
+/// Tap the arrow to change where the robot looks, and the picture to change what it looks for
+/// (rock / empty space / star).
 class _ConditionControls extends StatelessWidget {
   const _ConditionControls({required this.item, required this.onChanged, required this.enabled});
 
@@ -172,41 +173,52 @@ class _ConditionControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _RoundButton(
-          icon: Condition.targetIcon(item.target),
-          tooltip: 'Look for: ${item.target}',
-          onTap: enabled
-              ? () {
-                  item.target = _cycle(Condition.targets, item.target);
-                  onChanged();
-                }
-              : null,
-        ),
-        const SizedBox(height: 4),
-        _RoundButton(
-          icon: Condition.directionIcon(item.direction),
-          tooltip: 'Look: ${item.direction}',
-          onTap: enabled
-              ? () {
-                  item.direction = _cycle(Condition.directions, item.direction);
-                  onChanged();
-                }
-              : null,
-        ),
-      ],
+    return Semantics(
+      label: 'If there is ${Condition.targetLabel(item.target)} to the ${item.direction}',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.visibility, size: 16, color: AppColors.condition),
+          const SizedBox(height: 2),
+          _RoundButton(
+            key: const Key('if-direction'),
+            icon: Condition.directionIcon(item.direction),
+            tooltip: 'Look ${item.direction}',
+            onTap: enabled
+                ? () {
+                    item.direction = _cycle(Condition.directions, item.direction);
+                    onChanged();
+                  }
+                : null,
+          ),
+          const SizedBox(height: 4),
+          _RoundButton(
+            key: const Key('if-target'),
+            icon: Condition.targetIcon(item.target),
+            tooltip: 'Is there ${Condition.targetLabel(item.target)}?',
+            highlight: true,
+            onTap: enabled
+                ? () {
+                    item.target = _cycle(Condition.targets, item.target);
+                    onChanged();
+                  }
+                : null,
+          ),
+        ],
+      ),
     );
   }
 }
 
 class _RoundButton extends StatelessWidget {
-  const _RoundButton({required this.icon, required this.onTap, this.tooltip});
+  const _RoundButton({super.key, required this.icon, required this.onTap, this.tooltip, this.highlight = false});
 
   final IconData icon;
   final VoidCallback? onTap;
   final String? tooltip;
+
+  /// Fill with the If colour, for the thing the robot is looking for.
+  final bool highlight;
 
   @override
   Widget build(BuildContext context) {
@@ -214,14 +226,14 @@ class _RoundButton extends StatelessWidget {
       customBorder: const CircleBorder(),
       onTap: onTap,
       child: Container(
-        width: 28,
-        height: 28,
+        width: 30,
+        height: 30,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: onTap == null ? Colors.grey.shade200 : Colors.white,
-          border: Border.all(color: Colors.black26),
+          color: highlight ? AppColors.condition : Colors.white,
+          border: Border.all(color: highlight ? Colors.white : AppColors.condition.withValues(alpha: 0.5), width: 1.5),
         ),
-        child: Icon(icon, size: 18, color: onTap == null ? Colors.grey : Colors.black87),
+        child: Icon(icon, size: 18, color: highlight ? Colors.white : AppColors.ink),
       ),
     );
     return tooltip == null ? button : Tooltip(message: tooltip!, child: button);

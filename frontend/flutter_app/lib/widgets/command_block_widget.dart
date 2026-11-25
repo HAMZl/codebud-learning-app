@@ -25,11 +25,18 @@ class CommandBlock extends StatelessWidget {
       height: size,
       margin: const EdgeInsets.symmetric(horizontal: 3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isSelected ? AppColors.selected : color, width: isSelected ? 3 : 1.5),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color.lerp(color, Colors.white, 0.18)!, color],
+        ),
+        borderRadius: BorderRadius.circular(size * 0.24),
+        border: Border.all(color: isSelected ? AppColors.selected : Colors.white, width: isSelected ? 4 : 2),
+        boxShadow: [
+          BoxShadow(color: color.withValues(alpha: 0.35), blurRadius: 6, offset: const Offset(0, 3)),
+        ],
       ),
-      child: Icon(BlockType.icon(type), color: color, size: size * 0.55, semanticLabel: type),
+      child: Icon(BlockType.icon(type), color: Colors.white, size: size * 0.55, semanticLabel: type),
     );
   }
 }

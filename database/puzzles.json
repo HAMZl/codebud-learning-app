@@ -1138,7 +1138,7 @@
     "id": "cond2",
     "category": "conditional",
     "order": 2,
-    "title": "Edge of the World",
+    "title": "Rocks on the Move",
     "gridSize": 5,
     "start": [
       0,
@@ -1151,14 +1151,44 @@
     "obstacles": [
       [
         0,
+        2
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
         3
       ]
+    ],
+    "variants": [
+      {
+        "start": [
+          0,
+          0
+        ],
+        "goal": [
+          2,
+          4
+        ],
+        "obstacles": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      }
     ],
     "par": 4,
     "solution": [
       {
         "type": "Loop",
-        "repeat": 5,
+        "repeat": 4,
         "body": [
           {
             "type": "If",
@@ -1180,60 +1210,6 @@
     "id": "cond3",
     "category": "conditional",
     "order": 3,
-    "title": "Look Down",
-    "gridSize": 5,
-    "start": [
-      0,
-      0
-    ],
-    "goal": [
-      4,
-      4
-    ],
-    "obstacles": [
-      [
-        1,
-        0
-      ],
-      [
-        2,
-        1
-      ],
-      [
-        3,
-        2
-      ],
-      [
-        4,
-        3
-      ]
-    ],
-    "par": 4,
-    "solution": [
-      {
-        "type": "Loop",
-        "repeat": 4,
-        "body": [
-          {
-            "type": "If",
-            "condition": "obstacle_down",
-            "body": [
-              {
-                "type": "Right"
-              }
-            ]
-          },
-          {
-            "type": "Down"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "cond4",
-    "category": "conditional",
-    "order": 4,
     "title": "Find the Star",
     "gridSize": 5,
     "start": [
@@ -1242,7 +1218,7 @@
     ],
     "goal": [
       2,
-      4
+      3
     ],
     "obstacles": [
       [
@@ -1259,8 +1235,38 @@
       ],
       [
         2,
-        3
+        4
       ]
+    ],
+    "variants": [
+      {
+        "start": [
+          1,
+          0
+        ],
+        "goal": [
+          2,
+          4
+        ],
+        "obstacles": [
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            3
+          ]
+        ]
+      }
     ],
     "par": 4,
     "solution": [
@@ -1285,6 +1291,78 @@
     ]
   },
   {
+    "id": "cond4",
+    "category": "conditional",
+    "order": 4,
+    "title": "Look Down",
+    "gridSize": 5,
+    "start": [
+      0,
+      0
+    ],
+    "goal": [
+      4,
+      2
+    ],
+    "obstacles": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        1
+      ]
+    ],
+    "variants": [
+      {
+        "start": [
+          0,
+          0
+        ],
+        "goal": [
+          4,
+          2
+        ],
+        "obstacles": [
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            1
+          ]
+        ]
+      }
+    ],
+    "par": 4,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 4,
+        "body": [
+          {
+            "type": "If",
+            "condition": "obstacle_down",
+            "body": [
+              {
+                "type": "Right"
+              }
+            ]
+          },
+          {
+            "type": "Down"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "id": "cond5",
     "category": "conditional",
     "order": 5,
@@ -1295,20 +1373,54 @@
       0
     ],
     "goal": [
-      4,
+      3,
       4
     ],
     "obstacles": [
       [
         2,
-        1
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        4,
+        3
       ]
+    ],
+    "variants": [
+      {
+        "start": [
+          0,
+          0
+        ],
+        "goal": [
+          2,
+          4
+        ],
+        "obstacles": [
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ]
+        ]
+      }
     ],
     "par": 4,
     "solution": [
       {
         "type": "Loop",
-        "repeat": 5,
+        "repeat": 4,
         "body": [
           {
             "type": "If",
@@ -1330,15 +1442,139 @@
     "id": "cond6",
     "category": "conditional",
     "order": 6,
-    "title": "Wall Follower",
-    "gridSize": 5,
+    "title": "Star Hunt",
+    "gridSize": 6,
+    "start": [
+      1,
+      0
+    ],
+    "goal": [
+      2,
+      2
+    ],
+    "obstacles": [
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        2,
+        5
+      ]
+    ],
+    "variants": [
+      {
+        "start": [
+          1,
+          0
+        ],
+        "goal": [
+          2,
+          4
+        ],
+        "obstacles": [
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            5
+          ]
+        ]
+      },
+      {
+        "start": [
+          1,
+          0
+        ],
+        "goal": [
+          2,
+          5
+        ],
+        "obstacles": [
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            4
+          ]
+        ]
+      }
+    ],
+    "par": 4,
+    "solution": [
+      {
+        "type": "Loop",
+        "repeat": 5,
+        "body": [
+          {
+            "type": "Right"
+          },
+          {
+            "type": "If",
+            "condition": "goal_down",
+            "body": [
+              {
+                "type": "Down"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cond7",
+    "category": "conditional",
+    "order": 7,
+    "title": "Rocky Steps",
+    "gridSize": 6,
     "start": [
       0,
       0
     ],
     "goal": [
-      3,
-      4
+      1,
+      5
     ],
     "obstacles": [
       [
@@ -1346,9 +1582,75 @@
         2
       ],
       [
-        1,
-        4
+        0,
+        3
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        3
       ]
+    ],
+    "variants": [
+      {
+        "start": [
+          0,
+          0
+        ],
+        "goal": [
+          2,
+          5
+        ],
+        "obstacles": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            3,
+            1
+          ]
+        ]
+      },
+      {
+        "start": [
+          0,
+          0
+        ],
+        "goal": [
+          1,
+          5
+        ],
+        "obstacles": [
+          [
+            0,
+            5
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            5
+          ]
+        ]
+      }
     ],
     "par": 4,
     "solution": [
@@ -1373,28 +1675,58 @@
     ]
   },
   {
-    "id": "cond7",
+    "id": "cond8",
     "category": "conditional",
-    "order": 7,
+    "order": 8,
     "title": "Down the Cliff",
-    "gridSize": 5,
+    "gridSize": 6,
     "start": [
       0,
       0
     ],
     "goal": [
-      4,
-      3
+      5,
+      1
     ],
     "obstacles": [
       [
-        2,
+        0,
+        1
+      ],
+      [
+        3,
         0
       ],
       [
-        4,
-        1
+        3,
+        2
       ]
+    ],
+    "variants": [
+      {
+        "start": [
+          0,
+          0
+        ],
+        "goal": [
+          5,
+          2
+        ],
+        "obstacles": [
+          [
+            1,
+            0
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            5,
+            1
+          ]
+        ]
+      }
     ],
     "par": 4,
     "solution": [
@@ -1413,52 +1745,6 @@
           },
           {
             "type": "Down"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "cond8",
-    "category": "conditional",
-    "order": 8,
-    "title": "Long Staircase",
-    "gridSize": 6,
-    "start": [
-      0,
-      0
-    ],
-    "goal": [
-      3,
-      5
-    ],
-    "obstacles": [
-      [
-        0,
-        3
-      ],
-      [
-        1,
-        4
-      ]
-    ],
-    "par": 4,
-    "solution": [
-      {
-        "type": "Loop",
-        "repeat": 6,
-        "body": [
-          {
-            "type": "If",
-            "condition": "obstacle_right",
-            "body": [
-              {
-                "type": "Down"
-              }
-            ]
-          },
-          {
-            "type": "Right"
           }
         ]
       }
@@ -1487,6 +1773,28 @@
         5,
         3
       ]
+    ],
+    "variants": [
+      {
+        "start": [
+          5,
+          0
+        ],
+        "goal": [
+          5,
+          5
+        ],
+        "obstacles": [
+          [
+            4,
+            0
+          ],
+          [
+            5,
+            2
+          ]
+        ]
+      }
     ],
     "par": 6,
     "solution": [
@@ -1542,6 +1850,56 @@
         5,
         4
       ]
+    ],
+    "variants": [
+      {
+        "start": [
+          5,
+          0
+        ],
+        "goal": [
+          5,
+          5
+        ],
+        "obstacles": [
+          [
+            4,
+            0
+          ],
+          [
+            5,
+            2
+          ],
+          [
+            5,
+            4
+          ]
+        ]
+      },
+      {
+        "start": [
+          5,
+          0
+        ],
+        "goal": [
+          5,
+          5
+        ],
+        "obstacles": [
+          [
+            4,
+            0
+          ],
+          [
+            5,
+            3
+          ],
+          [
+            5,
+            4
+          ]
+        ]
+      }
     ],
     "par": 6,
     "solution": [

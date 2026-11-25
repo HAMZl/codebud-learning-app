@@ -1,11 +1,12 @@
 from typing import Any
 
-from flask import Blueprint, jsonify
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required
 
 from .. import engine
 from ..db import PROGRESS, PUZZLES, get_db
 from ..errors import ApiError
+from ..family import current_user, find_child
 from ..validation import json_body
 
 bp = Blueprint("puzzles", __name__, url_prefix="/api")
@@ -36,10 +37,12 @@ def list_puzzles(category: str):
     if category not in CATEGORIES:
         raise ApiError(f"Unknown category: {category}", code=404)
 
+    user = current_user()
+    child = find_child(user, request.args.get("child_id"))
     db = get_db()
     puzzles = list(db[PUZZLES].find({"category": category}, _HIDDEN).sort("order", 1))
     progress = db[PROGRESS].find(
-        {"username": get_jwt_identity(), "puzzle_id": {"$in": [p["id"] for p in puzzles]}},
+        {"username": user["username"], "child_id": child["id"], "puzzle_id": {"$in": [p["id"] for p in puzzles]}},
         {"_id": 0, "puzzle_id": 1, "stars": 1},
     )
     best = {p["puzzle_id"]: p.get("stars", 0) for p in progress}
@@ -72,7 +75,7 @@ def validate_sequence():
     data = json_body()
     puzzle = find_puzzle(data.get("puzzle_id"))
     program = parse_program(data)
-    result = engine.run(engine.Board.from_puzzle(puzzle), program, puzzle.get("par"))
+    result = engine.run_puzzle(puzzle, program, puzzle.get("par"))
     body = result.to_dict()
     # Older clients check for "valid" and "invalid".
     body["valid"] = result.solved

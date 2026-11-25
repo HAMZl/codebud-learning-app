@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/screens/puzzle_gameplay.dart';
 import 'package:flutter_app/services/settings.dart';
 import 'package:flutter_app/services/sound_service.dart';
+import 'package:flutter_app/models/command.dart';
 import 'package:flutter_app/widgets/success_popup_widget.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -47,7 +48,78 @@ void main() {
     expect(save.headers['Authorization'], 'Bearer token-123');
     expect(jsonDecode(save.body), {
       'puzzle_id': 'seq1',
+      'child_id': 'c1', // the child who is playing
       'program': List.filled(3, {'type': 'Right'}),
+    });
+  });
+
+  testWidgets('the board shows the playing child\'s robot', (tester) async {
+    final app = TestApp(playing: 'c2'); // Ava has a pink bunny
+    await tester.pumpWidget(app.wrap(const MaterialApp(home: PuzzleScreen(puzzleId: 'seq1', stepDuration: fast))));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.cruelty_free), findsOneWidget);
+  });
+
+  group('levels where the rocks move', () {
+    Future<TestApp> open(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final app = TestApp();
+      await tester.pumpWidget(app.wrap(const MaterialApp(home: PuzzleScreen(puzzleId: 'cond2', stepDuration: fast))));
+      await tester.pumpAndSettle();
+      return app;
+    }
+
+    testWidgets('show every board', (tester) async {
+      await open(tester);
+      expect(find.textContaining('The rocks move!'), findsOneWidget);
+      expect(find.byKey(const Key('board-thumb-0')), findsOneWidget);
+      expect(find.byKey(const Key('board-thumb-1')), findsOneWidget);
+    });
+
+    testWidgets('plain moves that only solve the first board get a hint about If blocks', (tester) async {
+      final app = await open(tester);
+      // Solves board 1 (Right, Down, Right, Down, Right, Right) but hits a rock on board 2.
+      for (final move in ['Right', 'Down', 'Right', 'Down', 'Right', 'Right']) {
+        await tapBlock(tester, move);
+      }
+      await tapPlay(tester);
+
+      expect(find.byType(SuccessPopup), findsNothing);
+      expect(find.textContaining('Try an If block'), findsOneWidget);
+      expect(app.backend.requests.where((r) => r.method == 'POST'), isEmpty);
+    });
+
+    testWidgets('a program with an If block solves every board', (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final app = TestApp();
+      // Repeat 4: if there is a rock to the right, go down. Then go right.
+      final program = [
+        CommandItem(type: BlockType.loop, repeat: 4, body: [
+          CommandItem(type: BlockType.ifBlock, body: [CommandItem(type: BlockType.down)]),
+          CommandItem(type: BlockType.right),
+        ]),
+      ];
+      await tester.pumpWidget(app.wrap(MaterialApp(
+        home: PuzzleScreen(puzzleId: 'cond2', stepDuration: fast, initialProgram: program),
+      )));
+      await tester.pumpAndSettle();
+      await tapPlay(tester);
+
+      expect(find.byType(SuccessPopup), findsOneWidget);
+      final save = jsonDecode(app.backend.requests.singleWhere((r) => r.method == 'POST').body);
+      expect(save['program'][0]['body'][0], {
+        'type': 'If',
+        'condition': 'obstacle_right',
+        'body': [
+          {'type': 'Down'}
+        ]
+      });
+      // A chime after each board that passes, then the win.
+      expect(app.sounds.played.where((s) => s == Sfx.star).length, greaterThanOrEqualTo(1));
     });
   });
 

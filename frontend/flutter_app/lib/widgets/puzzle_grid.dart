@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../models/family.dart';
 import '../models/point.dart';
 import '../models/puzzle.dart';
 import '../theme/app_theme.dart';
@@ -17,7 +18,11 @@ class PuzzleGrid extends StatelessWidget {
     this.stepDuration = const Duration(milliseconds: 300),
     this.maxBoardSize = 420,
     this.showHeader = true,
+    this.robotLook = const RobotLook(),
   });
+
+  /// The child's character and colour.
+  final RobotLook robotLook;
 
   final Puzzle puzzle;
   final Point robot;
@@ -52,8 +57,9 @@ class PuzzleGrid extends StatelessWidget {
             ],
             Container(
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.black, width: 2),
-                borderRadius: BorderRadius.circular(8),
+                color: const Color(0xFFDDF7F1),
+                border: Border.all(color: AppColors.primary, width: 2),
+                borderRadius: BorderRadius.circular(12),
               ),
               padding: const EdgeInsets.all(4),
               child: SizedBox(
@@ -72,8 +78,7 @@ class PuzzleGrid extends StatelessWidget {
                       left: robot.col * cell,
                       width: cell,
                       height: cell,
-                      child:
-                          Icon(Icons.smart_toy, size: cell * 0.6, color: Colors.green.shade800, semanticLabel: 'Robot'),
+                      child: Center(child: _robot(cell)),
                     ),
                   ],
                 ),
@@ -85,12 +90,28 @@ class PuzzleGrid extends StatelessWidget {
     });
   }
 
+  Widget _robot(double cell) {
+    final size = cell * 0.78;
+    final color = robotLook.colorValue;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: math.max(1.5, size * 0.06)),
+        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.45), blurRadius: size * 0.2)],
+      ),
+      child: Icon(robotLook.icon, size: size * 0.6, color: Colors.white, semanticLabel: 'Robot'),
+    );
+  }
+
   Widget _header() => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: AppColors.primaryLight,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.primary, width: 1.2),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.primaryLight, width: 2),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -98,7 +119,7 @@ class PuzzleGrid extends StatelessWidget {
             Row(
               children: List.generate(
                 3,
-                (i) => Icon(i < starPreview ? Icons.star : Icons.star_border, size: 24, color: AppColors.primary),
+                (i) => Icon(i < starPreview ? Icons.star : Icons.star_border, size: 26, color: AppColors.star),
               ),
             ),
             Row(
@@ -116,16 +137,19 @@ class PuzzleGrid extends StatelessWidget {
     final isObstacle = puzzle.obstacles.contains(p);
     final isGoal = p == puzzle.goal;
     return Container(
-      margin: const EdgeInsets.all(2),
+      margin: EdgeInsets.all(cell > 30 ? 2 : 1),
       decoration: BoxDecoration(
-        color: isObstacle ? Colors.grey.shade300 : (isGoal ? Colors.yellow.shade100 : Colors.white),
-        border: Border.all(color: Colors.black, width: 1.5),
-        borderRadius: BorderRadius.circular(4),
+        color: isObstacle ? const Color(0xFF94A3B8) : (isGoal ? AppColors.sunshineLight : Colors.white),
+        border: Border.all(
+          color: isGoal ? AppColors.sunshine : (isObstacle ? const Color(0xFF64748B) : const Color(0xFFB2EBE0)),
+          width: isGoal ? 2 : 1.5,
+        ),
+        borderRadius: BorderRadius.circular(cell * 0.14),
       ),
       child: isObstacle
-          ? Icon(Icons.terrain, size: cell * 0.55, semanticLabel: 'Rock')
+          ? Icon(Icons.terrain, size: cell * 0.6, color: Colors.white, semanticLabel: 'Rock')
           : isGoal
-              ? Icon(Icons.star, size: cell * 0.6, color: AppColors.star, semanticLabel: 'Goal')
+              ? Icon(Icons.star, size: cell * 0.66, color: AppColors.star, semanticLabel: 'Goal')
               : null,
     );
   }

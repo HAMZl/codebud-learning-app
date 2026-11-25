@@ -4,9 +4,13 @@ Puzzles are drawn as ASCII maps so they are easy to read and edit:
 
     S  start      G  goal (star)      #  rock      .  free cell
 
+A puzzle can have several boards of the same size (a list of maps). One program
+has to solve all of them, which is how conditional levels make If blocks matter.
+
 Each puzzle is checked with the backend game engine before it is written out:
-  * start and goal must be free and the goal must be reachable;
-  * the reference solution (if given) must reach the goal;
+  * start and goal must be free and the goal must be reachable on every board;
+  * the reference solution (if given) must reach the goal on every board;
+  * a puzzle with several boards must not be solvable with plain moves alone;
   * ``par`` (the block count for 3 stars) is the smaller of the reference
     solution's block count and the shortest plain-move path.
 Sequence puzzles do not need a reference solution. Their shortest path is used.
@@ -164,6 +168,9 @@ LOOP = [
      [loop(4, "Right"), loop(2, "Down"), loop(4, "Left"), loop(2, "Down"), loop(4, "Right")]),
 ]
 
+# Most conditional levels have several boards: the rocks (and sometimes the star) move,
+# and one program has to solve every board. No list of plain moves can do that, so the
+# robot has to look before it moves. The build checks this for every multi-board level.
 CONDITIONAL = [
     ("Look Ahead", ["S.#..",
                     "...#.",
@@ -171,62 +178,132 @@ CONDITIONAL = [
                     ".....",
                     "....."],
      [loop(4, when("obstacle_right", "Down"), "Right")]),
-    ("Edge of the World", ["S..#.",
-                           ".....",
-                           "....G",
-                           ".....",
-                           "....."],
-     [loop(5, when("obstacle_right", "Down"), "Right")]),
-    ("Look Down", ["S....",
-                   "#....",
-                   ".#...",
-                   "..#..",
-                   "...#G"],
-     [loop(4, when("obstacle_down", "Right"), "Down")]),
-    ("Find the Star", [".....",
-                       "S....",
-                       "####G",
-                       ".....",
-                       "....."],
+    ("Rocks on the Move", [["S.#..",
+                            "#..#.",
+                            "....G",
+                            ".....",
+                            "....."],
+                           ["S#...",
+                            "..#..",
+                            "....G",
+                            ".....",
+                            "....."]],
+     [loop(4, when("obstacle_right", "Down"), "Right")]),
+    ("Find the Star", [[".....",
+                        "S....",
+                        "###G#",
+                        ".....",
+                        "....."],
+                       [".....",
+                        "S....",
+                        "####G",
+                        ".....",
+                        "....."]],
      [loop(4, "Right", when("goal_down", "Down"))]),
-    ("Fall Down", ["S....",
-                   ".....",
-                   ".#...",
-                   ".....",
-                   "....G"],
-     [loop(5, when("empty_down", "Down"), "Right")]),
-    ("Wall Follower", ["S.#..",
-                       "....#",
-                       ".....",
-                       "....G",
-                       "....."],
+    ("Look Down", [["S#...",
+                    ".....",
+                    "#....",
+                    ".#...",
+                    "..G.."],
+                   ["S....",
+                    "#....",
+                    ".#...",
+                    ".....",
+                    "..G.."]],
+     [loop(4, when("obstacle_down", "Right"), "Down")]),
+    ("Fall Down", [["S....",
+                    ".....",
+                    "...##",
+                    "....G",
+                    "...#."],
+                   ["S....",
+                    "#....",
+                    ".##.G",
+                    ".....",
+                    "....."]],
+     [loop(4, when("empty_down", "Down"), "Right")]),
+    ("Star Hunt", [["......",
+                    "S.....",
+                    "##G###",
+                    "......",
+                    "......",
+                    "......"],
+                   ["......",
+                    "S.....",
+                    "####G#",
+                    "......",
+                    "......",
+                    "......"],
+                   ["......",
+                    "S.....",
+                    "#####G",
+                    "......",
+                    "......",
+                    "......"]],
+     [loop(5, "Right", when("goal_down", "Down"))]),
+    ("Rocky Steps", [["S.##..",
+                      ".....G",
+                      ".#.#..",
+                      "......",
+                      "......",
+                      "......"],
+                     ["S#....",
+                      "..#..#",
+                      ".....G",
+                      ".#....",
+                      "......",
+                      "......"],
+                     ["S....#",
+                      "##...G",
+                      ".....#",
+                      "......",
+                      "......",
+                      "......"]],
      [loop(5, when("obstacle_right", "Down"), "Right")]),
-    ("Down the Cliff", ["S....",
-                        ".....",
-                        "#....",
-                        ".....",
-                        ".#.G."],
+    ("Down the Cliff", [["S#....",
+                         "......",
+                         "......",
+                         "#.#...",
+                         "......",
+                         ".G...."],
+                        ["S.....",
+                         "#.....",
+                         "......",
+                         "......",
+                         "...#..",
+                         ".#G..."]],
      [loop(5, when("obstacle_down", "Right"), "Down")]),
-    ("Long Staircase", ["S..#..",
-                        "....#.",
-                        "......",
-                        ".....G",
-                        "......",
-                        "......"],
-     [loop(6, when("obstacle_right", "Down"), "Right")]),
-    ("Bumpy Road", ["......",
-                    "......",
-                    "......",
-                    "......",
-                    "......",
-                    "S#.#.G"],
+    ("Bumpy Road", [["......",
+                     "......",
+                     "......",
+                     "......",
+                     "......",
+                     "S#.#.G"],
+                    ["......",
+                     "......",
+                     "......",
+                     "......",
+                     "#.....",
+                     "S.#..G"]],
      [loop(5, when("obstacle_right", "Up"), "Right", when("empty_down", "Down"))]),
-    ("Clever Robot", ["......",
-                      "......",
-                      "......",
-                      "......",
-                      "......",
-                      "S#..#G"],
+    ("Clever Robot", [["......",
+                       "......",
+                       "......",
+                       "......",
+                       "......",
+                       "S#..#G"],
+                      ["......",
+                       "......",
+                       "......",
+                       "......",
+                       "#.....",
+                       "S.#.#G"],
+                      ["......",
+                       "......",
+                       "......",
+                       "......",
+                       "#.....",
+                       "S..##G"]],
      [loop(5, when("obstacle_right", "Up"), "Right", when("empty_down", "Down"))]),
 ]
 
@@ -259,22 +336,34 @@ def parse_map(rows: list[str]) -> dict:
     return {"gridSize": size, "start": start, "goal": goal, "obstacles": obstacles}
 
 
-def build_one(pid: str, category: str, order: int, title: str, rows: list[str], solution=None) -> dict:
-    puzzle = {"id": pid, "category": category, "order": order, "title": title, **parse_map(rows)}
-    board = engine.Board.from_puzzle(puzzle)
+def build_one(pid: str, category: str, order: int, title: str, maps: list, solution=None) -> dict:
+    # A single board is a list of rows; several boards are a list of those.
+    boards = [parse_map(m) for m in (maps if isinstance(maps[0], list) else [maps])]
+    if any(b["gridSize"] != boards[0]["gridSize"] for b in boards):
+        raise ValueError(f"{pid}: every board must be the same size")
+    puzzle = {"id": pid, "category": category, "order": order, "title": title, **boards[0]}
+    if len(boards) > 1:
+        puzzle["variants"] = [{k: b[k] for k in ("start", "goal", "obstacles")} for b in boards[1:]]
 
-    path = engine.shortest_path(board)
-    if path is None:
-        raise ValueError(f"{pid}: goal is not reachable")
+    for i, board in enumerate(engine.boards_of(puzzle), start=1):
+        if engine.shortest_path(board) is None:
+            raise ValueError(f"{pid}: the goal on board {i} is not reachable")
+    common = engine.shortest_common_path(engine.boards_of(puzzle))
+    if len(boards) > 1 and common is not None:
+        raise ValueError(f"{pid}: plain moves {common} solve every board, so no If block is needed")
 
     if solution is None:
-        solution = [{"type": m} for m in path]
+        solution = [{"type": m} for m in common]
     solution = engine.normalize_program(solution)
-    result = engine.run(board, solution)
+    result = engine.run_puzzle(puzzle, solution)
     if not result.solved:
-        raise ValueError(f"{pid}: reference solution fails with status {result.status!r} at {result.path[-1]}")
+        raise ValueError(
+            f"{pid}: reference solution fails on board {result.board + 1} "
+            f"with status {result.status!r} at {result.path[-1]}"
+        )
 
-    puzzle["par"] = min(engine.count_blocks(solution), len(path))
+    blocks = engine.count_blocks(solution)
+    puzzle["par"] = blocks if common is None else min(blocks, len(common))
     puzzle["solution"] = solution
     return puzzle
 
@@ -303,9 +392,10 @@ def main() -> int:
         return 1
 
     for p in puzzles:
-        board = engine.Board.from_puzzle(p)
-        shortest = len(engine.shortest_path(board))
-        print(f"{p['id']:7} {p['gridSize']}x{p['gridSize']}  par={p['par']:2}  shortest path={shortest:2}  {p['title']}")
+        boards = engine.boards_of(p)
+        common = engine.shortest_common_path(boards)
+        plain = f"plain moves={len(common):2}" if common else "needs an If  "
+        print(f"{p['id']:7} {p['gridSize']}x{p['gridSize']}  boards={len(boards)}  par={p['par']:2}  {plain}  {p['title']}")
 
     text = render(puzzles)
     if args.check:

@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import '../data/demo_puzzles.dart';
 import '../game/engine.dart';
 import '../models/command.dart';
+import '../models/family.dart';
 import '../routes.dart';
 import '../services/app_scope.dart';
 import '../theme/app_theme.dart';
+import '../widgets/made_by.dart';
 import '../widgets/mute_button.dart';
 import '../widgets/puzzle_playground.dart';
+import '../widgets/robot_avatar.dart';
 import '../widgets/showcase.dart';
 import '../widgets/success_popup_widget.dart';
 
@@ -28,11 +31,12 @@ class _LandingPageState extends State<LandingPage> {
   int _demoIndex = 0;
 
   static const _screenshots = [
+    ('assets/screenshots/profiles.png', 'Every child picks their own robot'),
     ('assets/screenshots/home.png', 'Pick a big idea to explore'),
-    ('assets/screenshots/levels.png', 'Levels unlock one by one'),
     ('assets/screenshots/puzzle.png', 'Drag picture blocks, press play'),
     ('assets/screenshots/success.png', 'Earn up to three stars'),
-    ('assets/screenshots/settings.png', 'Sound and speed settings'),
+    ('assets/screenshots/robot.png', 'Make the robot your own'),
+    ('assets/screenshots/levels.png', 'Levels unlock one by one'),
   ];
 
   @override
@@ -87,7 +91,7 @@ class _LandingPageState extends State<LandingPage> {
           slivers: [
             SliverAppBar(
               pinned: true,
-              backgroundColor: Colors.white,
+              backgroundColor: Colors.white.withValues(alpha: 0.95),
               surfaceTintColor: Colors.white,
               elevation: 1,
               titleSpacing: 16,
@@ -120,12 +124,13 @@ class _LandingPageState extends State<LandingPage> {
                 ),
               ],
             ),
-            SliverToBoxAdapter(child: _Section(background: const Color(0xFFFFF8EE), child: _hero(wide))),
-            SliverToBoxAdapter(child: _Section(child: _howItWorks(wide))),
-            SliverToBoxAdapter(child: _Section(background: const Color(0xFFF5F9FF), child: _concepts(wide))),
-            SliverToBoxAdapter(child: _Section(key: _demoKey, child: _demo())),
-            SliverToBoxAdapter(child: _Section(background: const Color(0xFFFFF8EE), child: _gallery())),
-            SliverToBoxAdapter(child: _Section(child: _forParents(wide))),
+            SliverToBoxAdapter(child: _Section(gradient: AppBackground.gradient, child: _hero(wide))),
+            SliverToBoxAdapter(child: _Section(background: Colors.white, child: _howItWorks(wide))),
+            SliverToBoxAdapter(child: _Section(background: AppColors.skyLight, child: _concepts(wide))),
+            SliverToBoxAdapter(child: _Section(key: _demoKey, background: Colors.white, child: _demo())),
+            SliverToBoxAdapter(child: _Section(background: AppColors.violetLight, child: _robots(wide))),
+            SliverToBoxAdapter(child: _Section(background: AppColors.sunshineLight, child: _gallery())),
+            SliverToBoxAdapter(child: _Section(background: Colors.white, child: _forParents(wide))),
             SliverToBoxAdapter(child: _footer()),
           ],
         );
@@ -145,22 +150,23 @@ class _LandingPageState extends State<LandingPage> {
           alignment: WrapAlignment.center,
           children: [
             Pill(icon: Icons.child_care, label: 'Ages 4–7'),
-            Pill(icon: Icons.extension, label: '30 puzzles'),
-            Pill(icon: Icons.visibility, label: 'No reading needed'),
+            Pill(icon: Icons.extension, label: '30 puzzles', color: AppColors.sky),
+            Pill(icon: Icons.visibility, label: 'No reading needed', color: AppColors.violet),
+            Pill(icon: Icons.family_restroom, label: 'The whole family', color: AppColors.loop),
           ],
         ),
         const SizedBox(height: 20),
         Text(
           'Coding adventures for little learners',
           textAlign: wide ? TextAlign.start : TextAlign.center,
-          style: TextStyle(fontSize: wide ? 48 : 34, fontWeight: FontWeight.w900, height: 1.1),
+          style: TextStyle(fontSize: wide ? 52 : 36, fontWeight: FontWeight.w900, height: 1.1, color: AppColors.ink),
         ),
         const SizedBox(height: 16),
         Text(
-          'Kids guide a friendly robot to the star with colourful picture blocks, '
+          'Kids guide their very own robot to the star with colourful picture blocks, '
           'and learn sequencing, loops and if-then logic along the way.',
           textAlign: wide ? TextAlign.start : TextAlign.center,
-          style: const TextStyle(fontSize: 18, color: Colors.black54, height: 1.4),
+          style: const TextStyle(fontSize: 18, color: AppColors.inkSoft, height: 1.4),
         ),
         const SizedBox(height: 28),
         Wrap(
@@ -209,7 +215,7 @@ class _LandingPageState extends State<LandingPage> {
         Icons.play_circle,
         '2. Press play',
         'Watch the robot follow the program step by step, with sounds for every move.',
-        const Icon(Icons.smart_toy, size: 64, color: Color(0xFF2E7D32)),
+        const RobotAvatar(look: RobotLook(color: 'sky'), size: 76),
       ),
       (
         Icons.star,
@@ -252,7 +258,8 @@ class _LandingPageState extends State<LandingPage> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text(body, textAlign: TextAlign.center, style: const TextStyle(color: Colors.black54, height: 1.4)),
+                    Text(body,
+                        textAlign: TextAlign.center, style: const TextStyle(color: AppColors.inkSoft, height: 1.4)),
                   ],
                 ),
               ),
@@ -281,7 +288,7 @@ class _LandingPageState extends State<LandingPage> {
                     children: [
                       Text(demo.concept, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
                       const SizedBox(height: 6),
-                      Text(demo.blurb, textAlign: TextAlign.center, style: const TextStyle(color: Colors.black54)),
+                      Text(demo.blurb, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.inkSoft)),
                       const SizedBox(height: 12),
                       ConceptPreview(demo: demo),
                     ],
@@ -325,6 +332,40 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
+  /// Robot customisation: every character, in a rainbow of colours.
+  Widget _robots(bool wide) {
+    final looks = [
+      for (var i = 0; i < RobotCharacter.all.length; i++)
+        RobotLook(character: RobotCharacter.all[i].id, color: RobotColor.all[(i * 3) % RobotColor.all.length].id),
+    ];
+    return Column(
+      children: [
+        const _Heading(
+          title: 'A robot buddy for every child',
+          subtitle:
+              'Each child picks a character, a colour and a nickname. Their buddy cheers them on in every puzzle.',
+        ),
+        const SizedBox(height: 32),
+        Wrap(
+          spacing: 20,
+          runSpacing: 20,
+          alignment: WrapAlignment.center,
+          children: [
+            for (final look in looks)
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  RobotAvatar(look: look, size: wide ? 96 : 76),
+                  const SizedBox(height: 8),
+                  Text(look.displayName, style: const TextStyle(fontWeight: FontWeight.w800)),
+                ],
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _gallery() => Column(
         children: [
           const _Heading(title: 'A peek inside', subtitle: 'Big buttons, bright colours and friendly sounds.'),
@@ -351,7 +392,21 @@ class _LandingPageState extends State<LandingPage> {
         'Each level unlocks after the one before it, so new ideas build on old ones.'
       ),
       (Icons.favorite, 'No failure penalties', 'A missed star brings a friendly hint and another try.'),
-      (Icons.lock, 'Parent controls', 'Account and progress settings sit behind a grown-ups-only check.'),
+      (
+        Icons.family_restroom,
+        'One account, every child',
+        'Add up to six children. Each one gets their own robot, stars and levels.'
+      ),
+      (
+        Icons.lock,
+        'Locked parent settings',
+        'Changing the account, the password or the kids needs your password, checked by the server.'
+      ),
+      (
+        Icons.call_split,
+        'Real if-then thinking',
+        'In later levels the rocks move, so one program must work on every board.'
+      ),
     ];
     return Column(
       children: [
@@ -370,12 +425,13 @@ class _LandingPageState extends State<LandingPage> {
                     CircleAvatar(
                       radius: 28,
                       backgroundColor: AppColors.primaryLight,
-                      child: Icon(icon, color: Colors.black87),
+                      child: Icon(icon, color: AppColors.primary),
                     ),
                     const SizedBox(height: 12),
                     Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 6),
-                    Text(body, textAlign: TextAlign.center, style: const TextStyle(color: Colors.black54, height: 1.4)),
+                    Text(body,
+                        textAlign: TextAlign.center, style: const TextStyle(color: AppColors.inkSoft, height: 1.4)),
                   ],
                 ),
               ),
@@ -393,7 +449,7 @@ class _LandingPageState extends State<LandingPage> {
 
   Widget _footer() => Container(
         width: double.infinity,
-        color: const Color(0xFF1F1F24),
+        color: AppColors.ink,
         padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
         child: Column(
           children: [
@@ -414,20 +470,23 @@ class _LandingPageState extends State<LandingPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 8),
+            const MadeByCredit(color: Colors.white70, linkColor: AppColors.sunshine),
           ],
         ),
       );
 }
 
 class _Section extends StatelessWidget {
-  const _Section({super.key, required this.child, this.background});
+  const _Section({super.key, required this.child, this.background, this.gradient});
   final Widget child;
   final Color? background;
+  final Gradient? gradient;
 
   @override
   Widget build(BuildContext context) => Container(
         width: double.infinity,
-        color: background,
+        decoration: BoxDecoration(color: background, gradient: gradient),
         padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 20),
         child: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1100), child: child)),
       );
@@ -441,10 +500,13 @@ class _Heading extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
         children: [
-          Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900)),
+          Text(title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppColors.ink)),
           if (subtitle != null) ...[
             const SizedBox(height: 8),
-            Text(subtitle!, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, color: Colors.black54)),
+            Text(subtitle!,
+                textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, color: AppColors.inkSoft)),
           ],
         ],
       );
@@ -461,9 +523,9 @@ class _Card extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey.shade200),
-          boxShadow: const [BoxShadow(color: Color(0x14000000), blurRadius: 16, offset: Offset(0, 6))],
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: const [BoxShadow(color: Color(0x1A0D9488), blurRadius: 20, offset: Offset(0, 8))],
         ),
         child: child,
       );

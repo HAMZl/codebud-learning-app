@@ -4,7 +4,7 @@ import '../routes.dart';
 import '../services/app_scope.dart';
 import 'landing_page.dart';
 
-/// The `/` route. Logged-in players go straight to the home screen, and everyone else sees the landing page.
+/// The `/` route. Logged-in families go to "Who's playing?", and everyone else sees the landing page.
 class LaunchPage extends StatefulWidget {
   const LaunchPage({super.key});
 
@@ -24,8 +24,11 @@ class _LaunchPageState extends State<LaunchPage> {
   Future<void> _skipIfLoggedIn() async {
     final loggedIn = await AppScope.of(context).auth.isLoggedIn();
     if (!mounted) return;
-    if (loggedIn) {
-      Navigator.pushReplacementNamed(context, Routes.home);
+    // A deep link like /home also builds this route underneath it. Only redirect when this
+    // page is the one on screen, or it would replace the page the link opened.
+    final onScreen = ModalRoute.of(context)?.isCurrent ?? true;
+    if (loggedIn && onScreen) {
+      Navigator.pushReplacementNamed(context, Routes.profiles);
     } else {
       setState(() => _checking = false);
     }

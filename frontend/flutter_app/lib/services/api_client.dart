@@ -17,6 +17,9 @@ class ApiException implements Exception {
   /// malformed token with a 422 whose body has a "msg" field.
   bool get isUnauthorized => statusCode == 401 || (statusCode == 422 && body.containsKey('msg'));
 
+  /// True when the server wants a parent token (see `POST /api/parent/unlock`).
+  bool get needsParent => statusCode == 403 && body['error'] == 'parent_required';
+
   @override
   String toString() => 'ApiException($statusCode): $message';
 }
@@ -31,21 +34,24 @@ class ApiClient {
   final String _baseUrl;
   final TokenStorage tokens;
 
-  Future<Map<String, dynamic>> get(String path, {bool auth = false}) => _send('GET', path, auth: auth);
+  // [bearer] sends that token instead of the stored one, e.g. a parent token.
+  Future<Map<String, dynamic>> get(String path, {bool auth = false, String? bearer}) =>
+      _send('GET', path, auth: auth, bearer: bearer);
 
-  Future<Map<String, dynamic>> post(String path, Map<String, dynamic> body, {bool auth = false}) =>
-      _send('POST', path, body: body, auth: auth);
+  Future<Map<String, dynamic>> post(String path, Map<String, dynamic> body, {bool auth = false, String? bearer}) =>
+      _send('POST', path, body: body, auth: auth, bearer: bearer);
 
-  Future<Map<String, dynamic>> patch(String path, Map<String, dynamic> body, {bool auth = false}) =>
-      _send('PATCH', path, body: body, auth: auth);
+  Future<Map<String, dynamic>> patch(String path, Map<String, dynamic> body, {bool auth = false, String? bearer}) =>
+      _send('PATCH', path, body: body, auth: auth, bearer: bearer);
 
-  Future<Map<String, dynamic>> delete(String path, {bool auth = false}) => _send('DELETE', path, auth: auth);
+  Future<Map<String, dynamic>> delete(String path, {bool auth = false, String? bearer}) =>
+      _send('DELETE', path, auth: auth, bearer: bearer);
 
   Future<Map<String, dynamic>> _send(String method, String path,
-      {Map<String, dynamic>? body, required bool auth}) async {
+      {Map<String, dynamic>? body, required bool auth, String? bearer}) async {
     final headers = <String, String>{'Content-Type': 'application/json'};
-    if (auth) {
-      final token = await tokens.readToken();
+    if (auth || bearer != null) {
+      final token = bearer ?? await tokens.readToken();
       if (token == null) throw const ApiException('Please log in again.', statusCode: 401);
       headers['Authorization'] = 'Bearer $token';
     }

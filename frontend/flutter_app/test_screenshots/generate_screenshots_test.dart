@@ -13,6 +13,7 @@ import 'package:flutter_app/main.dart';
 import 'package:flutter_app/models/command.dart';
 import 'package:flutter_app/routes.dart';
 import 'package:flutter_app/screens/puzzle_gameplay.dart';
+import 'package:flutter_app/screens/robot_studio_page.dart';
 import 'package:flutter_app/screens/settings_page.dart';
 import 'package:flutter_app/theme/app_theme.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -81,6 +82,14 @@ final progress = {'seq1': 3, 'seq2': 3, 'seq3': 2, 'seq4': 3, 'loop1': 3, 'loop2
 void main() {
   setUpAll(loadFonts);
 
+  shot('profiles', (tester) async {
+    await setSize(tester, phone);
+    final app = TestApp(playing: null);
+    await tester.pumpWidget(app.wrap(const CodeBudApp(initialRoute: Routes.profiles)));
+    await settle(tester);
+    await snap(tester, 'profiles');
+  });
+
   shot('home', (tester) async {
     await setSize(tester, phone);
     final app = TestApp(backend: FakeBackend(stars: progress));
@@ -104,11 +113,11 @@ void main() {
     final app = TestApp();
     final program = [
       CommandItem(type: BlockType.loop, repeat: 4, body: [
+        CommandItem(type: BlockType.ifBlock, body: [CommandItem(type: BlockType.down)]),
         CommandItem(type: BlockType.right),
-        CommandItem(type: BlockType.up),
       ]),
     ];
-    await tester.pumpWidget(app.wrap(screen(PuzzleScreen(puzzleId: 'loop6', initialProgram: program))));
+    await tester.pumpWidget(app.wrap(screen(PuzzleScreen(puzzleId: 'cond2', initialProgram: program))));
     await settle(tester);
     await snap(tester, 'puzzle');
   });
@@ -128,6 +137,14 @@ void main() {
     await tester.tap(find.byKey(const Key('play')));
     await settle(tester);
     await snap(tester, 'success');
+  });
+
+  shot('robot', (tester) async {
+    await setSize(tester, phone);
+    final app = TestApp();
+    await tester.pumpWidget(app.wrap(screen(const RobotStudioPage())));
+    await settle(tester);
+    await snap(tester, 'robot');
   });
 
   shot('settings', (tester) async {
