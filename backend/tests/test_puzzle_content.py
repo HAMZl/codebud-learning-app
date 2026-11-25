@@ -22,19 +22,30 @@ def puzzle(request, puzzle_data):
 
 
 def test_start_and_goal_are_free(puzzle):
-    board = engine.Board.from_puzzle(puzzle)
-    assert board.in_bounds(board.start) and board.start not in board.obstacles
-    assert board.in_bounds(board.goal) and board.goal not in board.obstacles
-    assert board.start != board.goal
+    for board in engine.boards_of(puzzle):
+        assert board.in_bounds(board.start) and board.start not in board.obstacles
+        assert board.in_bounds(board.goal) and board.goal not in board.obstacles
+        assert board.start != board.goal
 
 
 def test_reference_solution_earns_three_stars(puzzle):
-    board = engine.Board.from_puzzle(puzzle)
-    result = engine.run(board, engine.normalize_program(puzzle["solution"]), puzzle["par"])
-    assert result.solved, f"{puzzle['id']} solution ends with {result.status}"
+    result = engine.run_puzzle(puzzle, engine.normalize_program(puzzle["solution"]), puzzle["par"])
+    assert result.solved, f"{puzzle['id']} solution ends with {result.status} on board {result.board + 1}"
     assert result.stars == 3
 
 
 def test_par_is_not_beaten_by_plain_moves(puzzle):
-    board = engine.Board.from_puzzle(puzzle)
-    assert puzzle["par"] <= len(engine.shortest_path(board))
+    common = engine.shortest_common_path(engine.boards_of(puzzle))
+    if common is not None:
+        assert puzzle["par"] <= len(common)
+
+
+def test_multi_board_puzzles_need_an_if_block(puzzle):
+    if puzzle.get("variants"):
+        assert puzzle["category"] == "conditional"
+        assert engine.shortest_common_path(engine.boards_of(puzzle)) is None
+
+
+def test_most_conditional_levels_have_moving_rocks(puzzle_data):
+    multi = [p["id"] for p in puzzle_data if p["category"] == "conditional" and p.get("variants")]
+    assert len(multi) >= 8
