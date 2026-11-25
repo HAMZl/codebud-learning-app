@@ -28,4 +28,9 @@ def ensure_indexes(db: Database) -> None:
     db[USERS].create_index([("username", ASCENDING)], unique=True)
     db[PUZZLES].create_index([("id", ASCENDING)], unique=True)
     db[PUZZLES].create_index([("category", ASCENDING), ("order", ASCENDING)])
-    db[PROGRESS].create_index([("username", ASCENDING), ("puzzle_id", ASCENDING)], unique=True)
+    # Before families, progress was unique per account. Now it is unique per child.
+    if "username_1_puzzle_id_1" in db[PROGRESS].index_information():
+        db[PROGRESS].drop_index("username_1_puzzle_id_1")
+    db[PROGRESS].create_index(
+        [("username", ASCENDING), ("child_id", ASCENDING), ("puzzle_id", ASCENDING)], unique=True
+    )
