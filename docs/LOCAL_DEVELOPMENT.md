@@ -111,9 +111,11 @@ flutter run -d web-server --web-port 8080 --dart-define=API_BASE_URL=http://127.
 # then open http://127.0.0.1:8080
 ```
 
-Try it out: the landing page loads first. Play a demo puzzle (no account needed), then **Sign up**, log in, and play a level. The stars you earn are saved in your local MongoDB.
+Try it out: the landing page loads first. Play a demo puzzle (no account needed), then **Sign up** with one or more children. You're logged straight in and land on **Who's playing?**. Pick a child, customise their robot with **My robot**, and play a level. Each child's stars are saved separately in your local MongoDB.
 
-The **Settings** gear on the home screen opens the device settings. The parent area asks a multiplication question first.
+The **Settings** gear on the home screen opens the kids' settings. **Parent settings** (there, or the **Parents** button on "Who's playing?") ask for the account password, and lock again when you leave them.
+
+> **After pulling changes**, stop and restart both the API and `flutter run`. Neither picks up new code on its own, and hot reload can't add new packages. If the levels changed, run `python ../database/seed.py` again too.
 
 ### VS Code
 
