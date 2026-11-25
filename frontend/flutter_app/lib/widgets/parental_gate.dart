@@ -1,79 +1,116 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
+import '../services/api_client.dart';
+import '../services/app_scope.dart';
 import '../theme/app_theme.dart';
 
-/// Asks a multiplication question that young children can't easily answer, to
-/// keep account settings for grown-ups. Kids' apps usually put a check like
-/// this in front of anything that changes the account.
+/// Asks for the account password before opening anything parents-only.
 ///
-/// Returns true if the answer was right.
-Future<bool> showParentalGate(BuildContext context, {Random? random}) async {
-  final rng = random ?? Random();
-  final a = 3 + rng.nextInt(7); // 3..9
-  final b = 3 + rng.nextInt(7);
-  final result = await showDialog<bool>(
-    context: context,
-    builder: (_) => _ParentalGateDialog(a: a, b: b),
-  );
+/// The password is checked by the server, which hands back a short-lived parent
+/// token ([AuthService.unlockParent]). Every parent-only request needs that token,
+/// so a child can't get around the check by tapping elsewhere in the app.
+///
+/// Returns true once parent settings are unlocked. If they are already unlocked, no
+/// question is asked.
+Future<bool> showParentGate(BuildContext context) async {
+  final auth = AppScope.of(context).auth;
+  if (auth.isParentUnlocked) return true;
+  final result =
+      await showDialog<bool>(context: context, builder: (_) => _ParentGateDialog(scope: AppScope.of(context)));
   return result ?? false;
 }
 
-class _ParentalGateDialog extends StatefulWidget {
-  const _ParentalGateDialog({required this.a, required this.b});
-  final int a;
-  final int b;
+class _ParentGateDialog extends StatefulWidget {
+  const _ParentGateDialog({required this.scope});
+  final AppScope scope;
 
   @override
-  State<_ParentalGateDialog> createState() => _ParentalGateDialogState();
+  State<_ParentGateDialog> createState() => _ParentGateDialogState();
 }
 
-class _ParentalGateDialogState extends State<_ParentalGateDialog> {
-  final _answer = TextEditingController();
-  bool _wrong = false;
+class _ParentGateDialogState extends State<_ParentGateDialog> {
+  final _password = TextEditingController();
+  bool _checking = false;
+  bool _obscure = true;
+  String? _error;
 
   @override
   void dispose() {
-    _answer.dispose();
+    _password.dispose();
     super.dispose();
   }
 
-  void _check() {
-    if (int.tryParse(_answer.text.trim()) == widget.a * widget.b) {
-      Navigator.pop(context, true);
-    } else {
-      setState(() => _wrong = true);
-      _answer.clear();
+  Future<void> _check() async {
+    if (_password.text.isEmpty) {
+      setState(() => _error = 'Please enter your password');
+      return;
+    }
+    setState(() {
+      _checking = true;
+      _error = null;
+    });
+    try {
+      await widget.scope.auth.unlockParent(_password.text);
+      if (mounted) Navigator.pop(context, true);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _error = e.statusCode == 403 ? 'That password isn’t right. Try again.' : e.message);
+      _password.clear();
+    } finally {
+      if (mounted) setState(() => _checking = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      icon: const Icon(Icons.lock_outline, size: 40, color: AppColors.primary),
+      icon: const CircleAvatar(
+        radius: 30,
+        backgroundColor: AppColors.primaryLight,
+        child: Icon(Icons.lock_outline, size: 32, color: AppColors.primary),
+      ),
       title: const Text('Grown-ups only'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text('To continue, please answer:', textAlign: TextAlign.center),
-          const SizedBox(height: 12),
-          Text('${widget.a} × ${widget.b} = ?', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          TextField(
-            key: const Key('gate-answer'),
-            controller: _answer,
-            autofocus: true,
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            onSubmitted: (_) => _check(),
-            decoration: InputDecoration(errorText: _wrong ? 'Not quite, try again' : null),
-          ),
-        ],
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 360),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Enter the password you use to log in to CodeBud.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.inkSoft),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              key: const Key('gate-password'),
+              controller: _password,
+              autofocus: true,
+              obscureText: _obscure,
+              enabled: !_checking,
+              onSubmitted: (_) => _check(),
+              decoration: InputDecoration(
+                labelText: 'Password',
+                prefixIcon: const Icon(Icons.key),
+                errorText: _error,
+                suffixIcon: IconButton(
+                  tooltip: _obscure ? 'Show password' : 'Hide password',
+                  icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
+                  onPressed: () => setState(() => _obscure = !_obscure),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-        ElevatedButton(key: const Key('gate-submit'), onPressed: _check, child: const Text('Continue')),
+        ElevatedButton(
+          key: const Key('gate-submit'),
+          onPressed: _checking ? null : _check,
+          child: _checking
+              ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2.5))
+              : const Text('Unlock'),
+        ),
       ],
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../game/engine.dart';
 import '../models/category.dart';
 import '../models/command.dart';
+import '../models/family.dart';
 import '../models/point.dart';
 import '../models/puzzle.dart';
 import '../services/app_scope.dart';
@@ -25,9 +26,13 @@ class PuzzlePlayground extends StatefulWidget {
     this.stepDuration,
     this.initialProgram,
     this.compact = false,
+    this.robot = const RobotLook(),
   });
 
   final Puzzle puzzle;
+
+  /// The playing child's robot.
+  final RobotLook robot;
 
   /// Called when a run reaches the star. The robot goes back to the start once this completes.
   final Future<void> Function(RunResult result, List<CommandItem> program) onSolved;
@@ -50,6 +55,13 @@ class PuzzlePlaygroundState extends State<PuzzlePlayground> {
   CommandItem? _selected;
   late Point _robot = widget.puzzle.start;
   bool _running = false;
+
+  /// Which board is on screen, and how the last run went on each one (null: not run yet).
+  int _board = 0;
+  late List<RunStatus?> _results = List.filled(widget.puzzle.boards.length, null);
+
+  List<Puzzle> get _boards => widget.puzzle.boards;
+  bool get _multiBoard => _boards.length > 1;
   final _programScroll = ScrollController();
 
   AppScope get _scope => AppScope.of(context);
@@ -63,6 +75,8 @@ class PuzzlePlaygroundState extends State<PuzzlePlayground> {
     if (oldWidget.puzzle.id != widget.puzzle.id) {
       _program.clear();
       _selected = null;
+      _board = 0;
+      _results = List.filled(widget.puzzle.boards.length, null);
       _robot = widget.puzzle.start;
     }
   }
@@ -75,10 +89,25 @@ class PuzzlePlaygroundState extends State<PuzzlePlayground> {
 
   // --- editing ------------------------------------------------------------------------
 
+  /// The program changed, so earlier results no longer apply.
+  void _forgetResults() => _results = List.filled(_boards.length, null);
+
+  void _showBoard(int i) {
+    if (_running) return;
+    _sounds.play(Sfx.tap);
+    setState(() {
+      _board = i;
+      _robot = _boards[i].start;
+    });
+  }
+
   void _addBlock(String type) {
     if (_running) return;
     _sounds.play(Sfx.tap);
-    setState(() => _program.add(CommandItem(type: type)));
+    setState(() {
+      _program.add(CommandItem(type: type));
+      _forgetResults();
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_programScroll.hasClients) {
         _programScroll.animateTo(
@@ -96,13 +125,15 @@ class PuzzlePlaygroundState extends State<PuzzlePlayground> {
     setState(() {
       removeBlock(_program, item);
       _selected = null;
+      _forgetResults();
     });
   }
 
   void _clear() => setState(() {
         _program.clear();
         _selected = null;
-        _robot = widget.puzzle.start;
+        _forgetResults();
+        _robot = _boards[_board].start;
       });
 
   // --- running ------------------------------------------------------------------------
@@ -110,21 +141,33 @@ class PuzzlePlaygroundState extends State<PuzzlePlayground> {
   Future<void> _play() async {
     if (_running || _program.isEmpty) return;
     final puzzle = widget.puzzle;
-    final result = GameEngine.run(puzzle, _program);
+    final result = GameEngine.runPuzzle(puzzle, _program);
     setState(() {
       _running = true;
       _selected = null;
-      _robot = puzzle.start;
+      _forgetResults();
     });
 
-    for (final cell in result.path.skip(1)) {
+    // Play the boards in order, up to the first one the program fails on.
+    final last = result.solved ? result.boards.length - 1 : result.board;
+    for (var i = 0; i <= last; i++) {
+      final run = result.boards[i];
+      setState(() {
+        _board = i;
+        _robot = _boards[i].start;
+      });
+      if (_multiBoard) await Future.delayed(_step);
+      for (final cell in run.path.skip(1)) {
+        await Future.delayed(_step);
+        if (!mounted) return;
+        setState(() => _robot = cell);
+        _sounds.play(Sfx.step);
+      }
       await Future.delayed(_step);
       if (!mounted) return;
-      setState(() => _robot = cell);
-      _sounds.play(Sfx.step);
+      setState(() => _results[i] = run.status);
+      if (i < last) _sounds.play(Sfx.star);
     }
-    await Future.delayed(_step);
-    if (!mounted) return;
 
     if (result.solved) {
       _sounds.play(Sfx.success);
@@ -140,7 +183,7 @@ class PuzzlePlaygroundState extends State<PuzzlePlayground> {
     if (mounted) {
       setState(() {
         _running = false;
-        _robot = puzzle.start;
+        _robot = _boards[_board].start;
       });
     }
   }
@@ -151,11 +194,32 @@ class PuzzlePlaygroundState extends State<PuzzlePlayground> {
       RunStatus.obstacle => Icons.terrain,
       _ => Icons.star_border,
     };
+    final solvedSome = _multiBoard && result.board > 0;
+    final usesIf = _program.any((b) => b.type == BlockType.ifBlock || b.body.any((c) => c.type == BlockType.ifBlock));
     return showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         icon: Icon(icon, size: 48, color: AppColors.primary),
-        content: Text(result.hint ?? '', textAlign: TextAlign.center, style: const TextStyle(fontSize: 18)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_multiBoard) ...[
+              _BoardBadge(number: result.board + 1, status: result.status),
+              const SizedBox(height: 12),
+            ],
+            Text(result.hint ?? '', textAlign: TextAlign.center, style: const TextStyle(fontSize: 18)),
+            if (solvedSome) ...[
+              const SizedBox(height: 8),
+              Text(
+                usesIf
+                    ? 'It worked before, but the rocks are in different places on board ${result.board + 1}.'
+                    : 'It worked before, but the rocks moved! Try an If block, so the robot looks first.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 15, color: AppColors.inkSoft),
+              ),
+            ],
+          ],
+        ),
         actionsAlignment: MainAxisAlignment.center,
         actions: [
           ElevatedButton.icon(
@@ -177,9 +241,12 @@ class PuzzlePlaygroundState extends State<PuzzlePlayground> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (_multiBoard) _boardPicker(),
         PuzzleGrid(
-          puzzle: puzzle,
+          key: ValueKey('board-$_board'),
+          puzzle: _boards[_board],
           robot: _robot,
+          robotLook: widget.robot,
           blocksUsed: blocks,
           starPreview: _program.isEmpty ? 0 : GameEngine.starsFor(blocks, puzzle.par),
           stepDuration: _step * 0.7,
@@ -193,6 +260,72 @@ class PuzzlePlaygroundState extends State<PuzzlePlayground> {
       ],
     );
   }
+
+  /// "The rocks move!": small pictures of every board, with a tick or cross after a run.
+  Widget _boardPicker() => Container(
+        margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+        decoration: BoxDecoration(
+          color: AppColors.violetLight,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.violet.withValues(alpha: 0.35), width: 1.5),
+        ),
+        child: Column(
+          children: [
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.auto_awesome_motion, color: AppColors.violet),
+                SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    'The rocks move! One program must work on every board.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.ink),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 14,
+              runSpacing: 10,
+              alignment: WrapAlignment.center,
+              children: [
+                for (var i = 0; i < _boards.length; i++)
+                  GestureDetector(
+                    key: Key('board-thumb-$i'),
+                    onTap: () => _showBoard(i),
+                    child: Semantics(
+                      button: true,
+                      selected: i == _board,
+                      label: 'Board ${i + 1}',
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: i == _board ? AppColors.violet : Colors.transparent, width: 3),
+                        ),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            MiniBoard(puzzle: _boards[i], size: 56),
+                            Positioned(
+                              right: -12,
+                              top: -12,
+                              child: _BoardBadge(number: i + 1, status: _results[i], small: true),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      );
 
   Widget _palette(PuzzleCategory category) => SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -210,8 +343,8 @@ class PuzzlePlaygroundState extends State<PuzzlePlayground> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.primary, width: 2),
-          boxShadow: [BoxShadow(color: Colors.grey.shade300, blurRadius: 6, offset: const Offset(0, 3))],
+          border: Border.all(color: AppColors.primary, width: 2.5),
+          boxShadow: const [BoxShadow(color: Color(0x220D9488), blurRadius: 10, offset: Offset(0, 4))],
         ),
         child: DragTarget<String>(
           onWillAcceptWithDetails: (_) => !_running,
@@ -239,7 +372,7 @@ class PuzzlePlaygroundState extends State<PuzzlePlayground> {
                           onSelect: (item) => setState(() => _selected = identical(_selected, item) ? null : item),
                           onChanged: () {
                             _sounds.play(Sfx.tap);
-                            setState(() {});
+                            setState(_forgetResults);
                           },
                         ),
                       ),
@@ -263,17 +396,86 @@ class PuzzlePlaygroundState extends State<PuzzlePlayground> {
           ElevatedButton.icon(
             key: const Key('delete'),
             onPressed: _running || _selected == null ? null : _deleteSelected,
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.sky),
             icon: const Icon(Icons.backspace_outlined),
             label: const Text('Delete'),
           ),
           ElevatedButton.icon(
             key: const Key('clear'),
             onPressed: _running || _program.isEmpty ? null : _clear,
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
             icon: const Icon(Icons.delete_sweep),
             label: const Text('Clear'),
           ),
         ],
       );
+}
+
+/// A board number, or a tick (solved) or cross (failed) after a run.
+class _BoardBadge extends StatelessWidget {
+  const _BoardBadge({required this.number, required this.status, this.small = false});
+  final int number;
+  final RunStatus? status;
+  final bool small;
+
+  @override
+  Widget build(BuildContext context) {
+    final solved = status == RunStatus.success;
+    final color = status == null ? AppColors.violet : (solved ? AppColors.loop : AppColors.danger);
+    final size = small ? 24.0 : 36.0;
+    return Container(
+      width: size,
+      height: size,
+      decoration:
+          BoxDecoration(color: color, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
+      alignment: Alignment.center,
+      child: status == null
+          ? Text('$number',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: small ? 12 : 17))
+          : Icon(solved ? Icons.check : Icons.close, color: Colors.white, size: size * 0.6),
+    );
+  }
+}
+
+/// A tiny picture of a board: rocks, the star and where the robot starts.
+class MiniBoard extends StatelessWidget {
+  const MiniBoard({super.key, required this.puzzle, required this.size});
+  final Puzzle puzzle;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(size: Size.square(size), painter: _MiniBoardPainter(puzzle));
+}
+
+class _MiniBoardPainter extends CustomPainter {
+  _MiniBoardPainter(this.puzzle);
+  final Puzzle puzzle;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final n = puzzle.gridSize;
+    final cell = size.width / n;
+    final gap = cell * 0.08;
+    for (var r = 0; r < n; r++) {
+      for (var c = 0; c < n; c++) {
+        final p = Point(r, c);
+        final color = puzzle.obstacles.contains(p)
+            ? const Color(0xFF64748B)
+            : p == puzzle.goal
+                ? AppColors.star
+                : const Color(0xFFDDF7F1);
+        final rect = RRect.fromRectAndRadius(
+          Rect.fromLTWH(c * cell + gap, r * cell + gap, cell - 2 * gap, cell - 2 * gap),
+          Radius.circular(cell * 0.2),
+        );
+        canvas.drawRRect(rect, Paint()..color = color);
+      }
+    }
+    final s = puzzle.start;
+    canvas.drawCircle(
+        Offset((s.col + 0.5) * cell, (s.row + 0.5) * cell), cell * 0.34, Paint()..color = AppColors.primary);
+  }
+
+  @override
+  bool shouldRepaint(_MiniBoardPainter old) => old.puzzle != puzzle;
 }

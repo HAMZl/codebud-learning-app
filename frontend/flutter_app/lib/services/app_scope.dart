@@ -25,10 +25,11 @@ class AppScope extends InheritedWidget {
     final api = ApiClient(tokens: SecureTokenStorage());
     final settings = SettingsController(PrefsSettingsStore());
     await settings.load();
+    final auth = AuthService(api);
     return AppScope(
       key: key,
-      auth: AuthService(api),
-      puzzles: PuzzleService(api),
+      auth: auth,
+      puzzles: PuzzleService(api, auth),
       settings: settings,
       sounds: AudioSoundService(settings),
       child: child,

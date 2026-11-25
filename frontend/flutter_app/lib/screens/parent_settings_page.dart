@@ -2,16 +2,22 @@ import 'package:flutter/material.dart';
 
 import '../config/app_config.dart';
 import '../models/category.dart';
+import '../models/family.dart';
 import '../models/puzzle.dart';
 import '../routes.dart';
 import '../services/api_client.dart';
 import '../services/app_scope.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/child_dialog.dart';
+import '../widgets/made_by.dart';
+import '../widgets/parental_gate.dart';
+import '../widgets/robot_avatar.dart';
 import '../widgets/settings_widgets.dart';
 import 'session.dart';
 
-/// Account settings for grown-ups. It is reached through the parental gate on [SettingsPage].
+/// Account settings for grown-ups. Opening it needs the account password ([showParentGate]),
+/// and the server checks the parent token on every change made here.
 class ParentSettingsPage extends StatefulWidget {
   const ParentSettingsPage({super.key});
 
@@ -20,12 +26,12 @@ class ParentSettingsPage extends StatefulWidget {
 }
 
 class _ParentSettingsPageState extends State<ParentSettingsPage> {
-  Profile? _profile;
-  Map<String, CategoryProgress> _progress = const {};
+  Map<String, Map<String, CategoryProgress>> _progress = const {};
   bool _loading = true;
   bool _started = false;
 
   AppScope get _scope => AppScope.of(context);
+  AuthService get _auth => _scope.auth;
 
   @override
   void didChangeDependencies() {
@@ -39,169 +45,320 @@ class _ParentSettingsPageState extends State<ParentSettingsPage> {
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      final results = await Future.wait([_scope.auth.fetchProfile(), _scope.puzzles.fetchProgress()]);
-      if (!mounted) return;
-      setState(() {
-        _profile = results[0] as Profile;
-        _progress = results[1] as Map<String, CategoryProgress>;
-      });
+      final family = await _auth.loadFamily();
+      final entries = await Future.wait(family.children.map(
+        (c) async => MapEntry(c.id, await _scope.puzzles.fetchProgress(childId: c.id)),
+      ));
+      if (mounted) setState(() => _progress = Map.fromEntries(entries));
     } catch (e) {
-      if (mounted) await handleApiError(context, e);
+      if (mounted) await _onError(e);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
-  void _toast(String message, {bool error = false}) => ScaffoldMessenger.of(context)
-      .showSnackBar(SnackBar(content: Text(message), backgroundColor: error ? Colors.red : Colors.green));
-
-  // --- actions ----------------------------------------------------------------------
-
-  Future<void> _editProfile() async {
-    final updated = await showDialog<Profile>(
-      context: context,
-      builder: (_) => _EditProfileDialog(profile: _profile!, auth: _scope.auth),
-    );
-    if (updated != null && mounted) {
-      setState(() => _profile = updated);
-      _toast('Profile updated');
+  Future<void> _onError(Object e) async {
+    if (e is ApiException && e.needsParent) {
+      showToast(context, e.message, error: true);
+      setState(() {}); // shows the locked view
+      return;
     }
+    await handleApiError(context, e);
   }
 
-  Future<void> _changePassword() async {
-    final changed = await showDialog<bool>(context: context, builder: (_) => _PasswordDialog(auth: _scope.auth));
-    if (changed == true && mounted) _toast('Password changed');
-  }
-
-  Future<void> _reset({PuzzleCategory? category}) async {
-    final what = category == null ? 'all progress' : 'progress in ${category.title}';
+  Future<bool> _confirm({required String title, required String body, required String action, Key? key}) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        icon: const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 40),
-        title: Text('Reset $what?'),
-        content: const Text('Earned stars will be erased and levels will lock again. This cannot be undone.'),
+        icon: const Icon(Icons.warning_amber_rounded, color: AppColors.danger, size: 40),
+        title: Text(title),
+        content: Text(body),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
           ElevatedButton(
-            key: const Key('confirm-reset'),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            key: key,
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Reset'),
+            child: Text(action),
           ),
         ],
       ),
     );
-    if (ok != true || !mounted) return;
+    return ok == true && mounted;
+  }
+
+  // --- actions ----------------------------------------------------------------------
+
+  Future<void> _addChild() async {
+    final child = await showChildDialog(context, save: _auth.addChild);
+    if (child == null || !mounted) return;
+    showToast(context, '${child.name} added');
+    await _load();
+  }
+
+  Future<void> _editChild(Child child) async {
+    final updated = await showChildDialog(
+      context,
+      child: child,
+      save: (name, age) => _auth.updateChild(child, name: name, age: age),
+    );
+    if (updated != null && mounted) showToast(context, 'Saved');
+  }
+
+  Future<void> _removeChild(Child child) async {
+    if (!await _confirm(
+      key: const Key('confirm-remove'),
+      title: 'Remove ${child.name}?',
+      body: '${child.name}’s robot and stars will be deleted. This cannot be undone.',
+      action: 'Remove',
+    )) {
+      return;
+    }
     try {
-      await _scope.puzzles.resetProgress(category: category?.id);
-      if (!mounted) return;
-      _toast('Progress reset');
-      await _load();
+      await _auth.removeChild(child);
+      if (mounted) showToast(context, '${child.name} removed');
     } catch (e) {
-      if (mounted) await handleApiError(context, e);
+      if (mounted) await _onError(e);
     }
   }
 
+  Future<void> _reset(Child child, {PuzzleCategory? category}) async {
+    final what = category == null ? 'all of ${child.name}’s progress' : '${child.name}’s ${category.title} progress';
+    if (!await _confirm(
+      key: const Key('confirm-reset'),
+      title: 'Reset $what?',
+      body: 'Earned stars will be erased and levels will lock again. This cannot be undone.',
+      action: 'Reset',
+    )) {
+      return;
+    }
+    try {
+      await _scope.puzzles.resetProgress(childId: child.id, category: category?.id);
+      if (!mounted) return;
+      showToast(context, 'Progress reset');
+      await _load();
+    } catch (e) {
+      if (mounted) await _onError(e);
+    }
+  }
+
+  Future<void> _editAccount(Family family) async {
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (_) => _AccountDialog(family: family, auth: _auth),
+    );
+    if (saved == true && mounted) showToast(context, 'Account updated');
+  }
+
+  Future<void> _changePassword() async {
+    final changed = await showDialog<bool>(context: context, builder: (_) => _PasswordDialog(auth: _auth));
+    if (changed == true && mounted) showToast(context, 'Password changed');
+  }
+
   Future<void> _logout() async {
-    await _scope.auth.logout();
+    await _auth.logout();
     if (mounted) Navigator.pushNamedAndRemoveUntil(context, Routes.launch, (_) => false);
+  }
+
+  void _lock() {
+    _auth.lockParent();
+    Navigator.pop(context);
   }
 
   // --- UI ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
-    final profile = _profile;
-    return Scaffold(
-      appBar: AppBar(title: const Text('Parent settings')),
-      body: _loading && profile == null
-          ? const Center(child: CircularProgressIndicator())
-          : SettingsList(
-              children: [
-                const SettingsSection(title: 'Child profile', icon: Icons.child_care),
-                SettingsCard(children: [
-                  ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: AppColors.primaryLight,
-                      child: Text(
-                        (profile?.childName.isNotEmpty ?? false) ? profile!.childName[0].toUpperCase() : '?',
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
-                      ),
-                    ),
-                    title: Text(profile?.childName ?? ''),
-                    subtitle: Text(profile?.childAge == null ? 'Age not set' : 'Age ${profile!.childAge}'),
-                    trailing: IconButton(
-                      key: const Key('edit-profile'),
-                      tooltip: 'Edit profile',
-                      icon: const Icon(Icons.edit),
-                      onPressed: profile == null ? null : _editProfile,
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.person_outline),
-                    title: Text(profile?.parentName ?? ''),
-                    subtitle: Text(profile?.email ?? ''),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.account_circle_outlined),
-                    title: const Text('Username'),
-                    subtitle: Text(profile?.username ?? ''),
-                  ),
-                ]),
-                const SettingsSection(title: 'Progress', icon: Icons.star),
-                SettingsCard(children: [
-                  for (final c in PuzzleCategory.all) _progressTile(c, _progress[c.id] ?? const CategoryProgress()),
-                  ListTile(
-                    key: const Key('reset-all'),
-                    leading: const Icon(Icons.restart_alt, color: Colors.red),
-                    title: const Text('Reset all progress', style: TextStyle(color: Colors.red)),
-                    onTap: () => _reset(),
-                  ),
-                ]),
-                const SettingsSection(title: 'Account', icon: Icons.manage_accounts),
-                SettingsCard(children: [
-                  ListTile(
-                    key: const Key('change-password'),
-                    leading: const Icon(Icons.password),
-                    title: const Text('Change password'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: _changePassword,
-                  ),
-                  ListTile(
-                    key: const Key('logout'),
-                    leading: const Icon(Icons.logout),
-                    title: const Text('Log out'),
-                    onTap: _logout,
-                  ),
-                ]),
-                const SettingsSection(title: 'About', icon: Icons.info_outline),
-                const SettingsCard(children: [
-                  ListTile(title: Text('CodeBud'), subtitle: Text('Version ${AppConfig.version}')),
-                  ListTile(
-                    title: Text('Your data'),
-                    subtitle: Text(
-                      'Sound and play settings are stored only on this device. Progress and the child profile '
-                      'are saved to your CodeBud account so they follow you between devices.',
-                    ),
-                  ),
-                ]),
-              ],
-            ),
+    return ListenableBuilder(
+      listenable: _auth,
+      builder: (context, _) => Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          title: const Text('Parent settings'),
+          actions: [
+            if (_auth.isParentUnlocked)
+              IconButton(key: const Key('lock-now'), tooltip: 'Lock', icon: const Icon(Icons.lock), onPressed: _lock),
+          ],
+        ),
+        body: AppBackground(child: SafeArea(child: _body())),
+      ),
     );
   }
 
-  Widget _progressTile(PuzzleCategory c, CategoryProgress p) {
+  Widget _body() {
+    if (!_auth.isParentUnlocked) return _locked();
+    final family = _auth.family;
+    if (family == null) {
+      return Center(child: _loading ? const CircularProgressIndicator() : const Text('Could not load your family.'));
+    }
+    return SettingsList(
+      children: [
+        const SettingsSection(title: 'Your kids', icon: Icons.family_restroom),
+        for (final child in family.children) _childCard(child, canRemove: family.children.length > 1),
+        if (family.children.length < Family.maxChildren)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: OutlinedButton.icon(
+              key: const Key('parent-add-child'),
+              onPressed: _addChild,
+              icon: const Icon(Icons.person_add),
+              label: const Text('Add a child'),
+            ),
+          ),
+        const SettingsSection(title: 'Your account', icon: Icons.manage_accounts),
+        SettingsCard(children: [
+          ListTile(
+            leading: const Icon(Icons.person_outline),
+            title: Text(family.parentName ?? ''),
+            subtitle: Text(family.email ?? ''),
+            trailing: IconButton(
+              key: const Key('edit-account'),
+              tooltip: 'Edit',
+              icon: const Icon(Icons.edit),
+              onPressed: () => _editAccount(family),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.account_circle_outlined),
+            title: const Text('Username'),
+            subtitle: Text(family.username),
+          ),
+          ListTile(
+            key: const Key('change-password'),
+            leading: const Icon(Icons.password),
+            title: const Text('Change password'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: _changePassword,
+          ),
+          ListTile(
+            key: const Key('logout'),
+            leading: const Icon(Icons.logout, color: AppColors.danger),
+            title: const Text('Log out', style: TextStyle(color: AppColors.danger)),
+            onTap: _logout,
+          ),
+        ]),
+        const SettingsSection(title: 'About', icon: Icons.info_outline),
+        const SettingsCard(children: [
+          ListTile(title: Text('CodeBud'), subtitle: Text('Version ${AppConfig.version}')),
+          ListTile(
+            title: Text('Your data'),
+            subtitle: Text(
+              'Sound and play settings are stored only on this device. Your kids’ profiles, robots and stars are '
+              'saved to your CodeBud account so they follow you between devices. Parent settings lock again '
+              'when you leave them, or after 30 minutes.',
+            ),
+          ),
+          Padding(padding: EdgeInsets.fromLTRB(16, 4, 16, 16), child: MadeByCredit(linkColor: AppColors.primary)),
+        ]),
+      ],
+    );
+  }
+
+  Widget _locked() => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircleAvatar(
+                radius: 40,
+                backgroundColor: AppColors.primaryLight,
+                child: Icon(Icons.lock, size: 40, color: AppColors.primary),
+              ),
+              const SizedBox(height: 16),
+              const Text('Parent settings are locked', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                key: const Key('unlock-again'),
+                onPressed: () async {
+                  if (await showParentGate(context) && mounted) await _load();
+                },
+                icon: const Icon(Icons.lock_open),
+                label: const Text('Unlock'),
+              ),
+            ],
+          ),
+        ),
+      );
+
+  Widget _childCard(Child child, {required bool canRemove}) {
+    final progress = _progress[child.id] ?? const {};
+    final stars = progress.values.fold(0, (sum, p) => sum + p.stars);
+    final maxStars = progress.values.fold(0, (sum, p) => sum + p.maxStars);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: SettingsCard(children: [
+        Theme(
+          // ExpansionTile draws divider lines by default; the card already has a border.
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            key: Key('child-${child.id}'),
+            leading: RobotAvatar(look: child.robot, size: 48),
+            title: Text(child.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+            subtitle: Text(
+              [
+                if (child.age != null) 'Age ${child.age}',
+                'Robot: ${child.robot.displayName}',
+                if (maxStars > 0) '$stars / $maxStars stars',
+              ].join(' · '),
+            ),
+            childrenPadding: const EdgeInsets.only(bottom: 8),
+            children: [
+              for (final c in PuzzleCategory.all) _progressTile(child, c, progress[c.id] ?? const CategoryProgress()),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                alignment: WrapAlignment.center,
+                children: [
+                  TextButton.icon(
+                    key: Key('edit-child-${child.id}'),
+                    onPressed: () => _editChild(child),
+                    icon: const Icon(Icons.edit),
+                    label: const Text('Name & age'),
+                  ),
+                  TextButton.icon(
+                    key: Key('reset-all-${child.id}'),
+                    onPressed: () => _reset(child),
+                    style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+                    icon: const Icon(Icons.restart_alt),
+                    label: const Text('Reset stars'),
+                  ),
+                  if (canRemove)
+                    TextButton.icon(
+                      key: Key('remove-child-${child.id}'),
+                      onPressed: () => _removeChild(child),
+                      style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+                      icon: const Icon(Icons.person_remove),
+                      label: const Text('Remove'),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Widget _progressTile(Child child, PuzzleCategory c, CategoryProgress p) {
     final fraction = p.maxStars == 0 ? 0.0 : p.stars / p.maxStars;
     return ListTile(
-      leading:
-          CircleAvatar(backgroundColor: c.color.withValues(alpha: 0.25), child: Icon(c.icon, color: Colors.black87)),
+      dense: true,
+      leading: CircleAvatar(backgroundColor: c.color, child: Icon(c.icon, color: Colors.white, size: 20)),
       title: Text(c.title),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 4),
-          LinearProgressIndicator(value: fraction, color: c.color, backgroundColor: Colors.grey.shade200),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(99),
+            child: LinearProgressIndicator(
+              value: fraction,
+              minHeight: 6,
+              color: c.color,
+              backgroundColor: const Color(0xFFE2E8F0),
+            ),
+          ),
           const SizedBox(height: 4),
           Text('${p.completed}/${p.total} levels · ${p.stars}/${p.maxStars} stars'),
         ],
@@ -209,35 +366,32 @@ class _ParentSettingsPageState extends State<ParentSettingsPage> {
       trailing: IconButton(
         tooltip: 'Reset ${c.title}',
         icon: const Icon(Icons.restart_alt),
-        onPressed: p.completed == 0 ? null : () => _reset(category: c),
+        onPressed: p.completed == 0 ? null : () => _reset(child, category: c),
       ),
     );
   }
 }
 
-class _EditProfileDialog extends StatefulWidget {
-  const _EditProfileDialog({required this.profile, required this.auth});
-  final Profile profile;
+class _AccountDialog extends StatefulWidget {
+  const _AccountDialog({required this.family, required this.auth});
+  final Family family;
   final AuthService auth;
 
   @override
-  State<_EditProfileDialog> createState() => _EditProfileDialogState();
+  State<_AccountDialog> createState() => _AccountDialogState();
 }
 
-class _EditProfileDialogState extends State<_EditProfileDialog> {
+class _AccountDialogState extends State<_AccountDialog> {
   final _form = GlobalKey<FormState>();
-  late final _childName = TextEditingController(text: widget.profile.childName);
-  late final _childAge = TextEditingController(text: widget.profile.childAge?.toString() ?? '');
-  late final _parentName = TextEditingController(text: widget.profile.parentName ?? '');
-  late final _email = TextEditingController(text: widget.profile.email ?? '');
+  late final _parentName = TextEditingController(text: widget.family.parentName ?? '');
+  late final _email = TextEditingController(text: widget.family.email ?? '');
   bool _saving = false;
   String? _error;
 
   @override
   void dispose() {
-    for (final c in [_childName, _childAge, _parentName, _email]) {
-      c.dispose();
-    }
+    _parentName.dispose();
+    _email.dispose();
     super.dispose();
   }
 
@@ -248,13 +402,8 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
       _error = null;
     });
     try {
-      final updated = await widget.auth.updateProfile(
-        childName: _childName.text.trim(),
-        childAge: int.parse(_childAge.text.trim()),
-        parentName: _parentName.text.trim(),
-        email: _email.text.trim(),
-      );
-      if (mounted) Navigator.pop(context, updated);
+      await widget.auth.updateParent(parentName: _parentName.text.trim(), email: _email.text.trim());
+      if (mounted) Navigator.pop(context, true);
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } finally {
@@ -262,64 +411,43 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
     }
   }
 
-  String? _required(String? v) => (v == null || v.trim().isEmpty) ? 'Required' : null;
-
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Edit profile'),
+      title: const Text('Your account'),
       content: Form(
         key: _form,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                key: const Key('child-name'),
-                controller: _childName,
-                decoration: const InputDecoration(labelText: 'Child name'),
-                validator: _required,
-              ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              key: const Key('parent-name'),
+              controller: _parentName,
+              decoration: const InputDecoration(labelText: 'Your name'),
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              key: const Key('parent-email'),
+              controller: _email,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(labelText: 'Email'),
+              validator: (v) =>
+                  RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v?.trim() ?? '') ? null : 'Invalid email',
+            ),
+            if (_error != null) ...[
               const SizedBox(height: 12),
-              TextFormField(
-                key: const Key('child-age'),
-                controller: _childAge,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Child age'),
-                validator: (v) {
-                  final age = int.tryParse(v?.trim() ?? '');
-                  return (age == null || age < 3 || age > 12) ? 'Age must be from 3 to 12' : null;
-                },
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _parentName,
-                decoration: const InputDecoration(labelText: 'Parent name'),
-                validator: _required,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _email,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(labelText: 'Email'),
-                validator: (v) =>
-                    RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v?.trim() ?? '') ? null : 'Invalid email',
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(_error!, style: const TextStyle(color: Colors.red)),
-              ],
+              Text(_error!, style: const TextStyle(color: AppColors.danger)),
             ],
-          ),
+          ],
         ),
       ),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
         ElevatedButton(
-          key: const Key('save-profile'),
+          key: const Key('save-account'),
           onPressed: _saving ? null : _save,
-          child:
-              _saving ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator()) : const Text('Save'),
+          child: const Text('Save'),
         ),
       ],
     );
@@ -376,6 +504,7 @@ class _PasswordDialogState extends State<_PasswordDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextFormField(
+              key: const Key('current-password'),
               controller: _current,
               obscureText: true,
               decoration: const InputDecoration(labelText: 'Current password'),
@@ -383,6 +512,7 @@ class _PasswordDialogState extends State<_PasswordDialog> {
             ),
             const SizedBox(height: 12),
             TextFormField(
+              key: const Key('new-password'),
               controller: _next,
               obscureText: true,
               decoration: const InputDecoration(labelText: 'New password'),
@@ -390,6 +520,7 @@ class _PasswordDialogState extends State<_PasswordDialog> {
             ),
             const SizedBox(height: 12),
             TextFormField(
+              key: const Key('confirm-password'),
               controller: _confirm,
               obscureText: true,
               decoration: const InputDecoration(labelText: 'Confirm new password'),
@@ -397,14 +528,18 @@ class _PasswordDialogState extends State<_PasswordDialog> {
             ),
             if (_error != null) ...[
               const SizedBox(height: 12),
-              Text(_error!, style: const TextStyle(color: Colors.red)),
+              Text(_error!, style: const TextStyle(color: AppColors.danger)),
             ],
           ],
         ),
       ),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-        ElevatedButton(onPressed: _saving ? null : _save, child: const Text('Change')),
+        ElevatedButton(
+          key: const Key('save-password'),
+          onPressed: _saving ? null : _save,
+          child: const Text('Change'),
+        ),
       ],
     );
   }

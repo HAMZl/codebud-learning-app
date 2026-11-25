@@ -5,8 +5,10 @@ import 'screens/home_page.dart';
 import 'screens/launch_page.dart';
 import 'screens/login_page.dart';
 import 'screens/parent_settings_page.dart';
+import 'screens/profiles_page.dart';
 import 'screens/puzzle_gameplay.dart';
 import 'screens/puzzle_selection_page.dart';
+import 'screens/robot_studio_page.dart';
 import 'screens/settings_page.dart';
 import 'screens/signup_page.dart';
 
@@ -14,7 +16,9 @@ class Routes {
   static const launch = '/';
   static const login = '/login';
   static const signup = '/signup';
+  static const profiles = '/profiles';
   static const home = '/home';
+  static const robot = '/robot';
   static const category = '/category';
   static const puzzle = '/puzzle';
   static const settings = '/settings';
@@ -37,8 +41,12 @@ class Routes {
         page = LoginPage(message: args is String ? args : null);
       case signup:
         page = const SignUpPage();
+      case profiles:
+        page = const ProfilesPage();
       case home:
         page = const HomePage();
+      case robot:
+        page = const RobotStudioPage();
       case category:
         page = PuzzleSelectionPage(category: PuzzleCategory.byId(args as String));
       case settings:
