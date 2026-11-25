@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from dotenv import load_dotenv
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -23,7 +22,6 @@ def create_app(config: type[Config] | Config | None = None, *, db: Any = None) -
     ``db`` injects a database object, for example a ``mongomock`` database in
     tests. Without it the app connects to ``MONGO_URI``.
     """
-    load_dotenv()
     app = Flask(__name__)
     cfg = config() if isinstance(config, type) else (config or Config())
     app.config.from_object(cfg)

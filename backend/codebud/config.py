@@ -1,5 +1,12 @@
 import os
 from datetime import timedelta
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Config reads the environment when this module is imported, so backend/.env
+# must be loaded first. Variables already set in the environment take precedence.
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 
 def _env_bool(name: str, default: bool = False) -> bool:
